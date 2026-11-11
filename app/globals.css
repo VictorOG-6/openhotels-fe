@@ -1,0 +1,91 @@
+@import "tailwindcss";
+
+:root {
+  color-scheme: light;
+  --background: #faf7f2;
+  --foreground: #1a1714;
+  --paper: #faf7f2;
+  --ink: #1a1714;
+  --sand: #f3ece3;
+  --clay: #c4542c;
+  --clay-dark: #9a3d1c;
+  --pine: #1e3d32;
+  --gold: #b08968;
+  --line: #e7dfd4;
+  --muted: #6f675f;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-paper: var(--paper);
+  --color-ink: var(--ink);
+  --color-sand: var(--sand);
+  --color-clay: var(--clay);
+  --color-clay-dark: var(--clay-dark);
+  --color-pine: var(--pine);
+  --color-gold: var(--gold);
+  --color-line: var(--line);
+  --color-muted: var(--muted);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+  --font-display: var(--font-fraunces);
+}
+
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-sans), sans-serif;
+}
+
+::selection {
+  background: #f0c7b4;
+  color: #1a1714;
+}
+
+:focus-visible {
+  outline: 2px solid #c4542c;
+  outline-offset: 3px;
+}
+
+input[type="date"] {
+  color-scheme: light;
+}
+
+.map-pin {
+  position: absolute;
+  z-index: 1;
+  display: inline-flex;
+  min-width: 4.5rem;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgb(26 23 20 / 10%);
+  border-radius: 999px;
+  background: white;
+  padding: 0.4rem 0.7rem;
+  color: #1a1714;
+  font: 700 13px/1 var(--font-sans), sans-serif;
+  white-space: nowrap;
+  box-shadow: 0 10px 24px rgb(26 23 20 / 18%);
+  transform: translate(-50%, -50%);
+  cursor: pointer;
+}
+
+.map-pin.is-active {
+  z-index: 2;
+  background: #1a1714;
+  color: white;
+}
+
+.leaflet-div-icon.map-pin-icon {
+  border: 0;
+  background: transparent;
+}
+
+.leaflet-container {
+  z-index: 0;
+  width: 100%;
+  height: 100%;
+  background: #e7dfd4;
+  font-family: inherit;
+}
