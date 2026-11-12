@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Fraunces, Geist, Geist_Mono } from "next/font/google";
 import { Suspense } from "react";
 
+import BookingAssistant from "@/components/assistant/booking-assistant";
 import Footer from "@/components/layout/footer";
 import Navbar, { NavbarFallback } from "@/components/layout/navbar";
 import "./globals.css";
@@ -49,6 +50,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           {children}
         </main>
         <Footer />
+        <BookingAssistant />
       </body>
     </html>
   );

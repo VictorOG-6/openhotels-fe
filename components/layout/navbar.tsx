@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils";
 
 const LINKS = [
   { href: "/hotels", label: "Hotels" },
-  { href: "/booking", label: "Booking" },
+  { href: "/bookings", label: "Bookings", match: ["/bookings", "/booking"] },
   { href: "/about", label: "About" },
   { href: "/contact", label: "Contact" },
 ];
@@ -44,7 +44,7 @@ export default function Navbar() {
         </Link>
         <nav className="hidden items-center gap-1 md:flex" aria-label="Primary">
           {LINKS.map((link) => {
-            const active = pathname === link.href || pathname.startsWith(`${link.href}/`);
+            const active = isActive(pathname, link);
             return (
               <Link
                 key={link.href}
@@ -105,4 +105,9 @@ export default function Navbar() {
 
 export function NavbarFallback() {
   return <div className="fixed inset-x-0 top-0 z-50 h-16" />;
+}
+
+function isActive(pathname: string, link: { href: string; match?: string[] }) {
+  const paths = link.match ?? [link.href];
+  return paths.some((href) => pathname === href || pathname.startsWith(`${href}/`));
 }

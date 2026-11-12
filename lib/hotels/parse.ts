@@ -148,6 +148,36 @@ export function readPrebook(payload: unknown): PrebookResult | null {
   };
 }
 
+export function readBookingList(payload: unknown): BookingResult[] {
+  const found: BookingResult[] = [];
+  const seen = new Set<string>();
+  const walked = new Set<unknown>();
+  const visit = (value: unknown) => {
+    if (!value || walked.has(value)) return;
+    if (Array.isArray(value)) {
+      walked.add(value);
+      value.forEach(visit);
+      return;
+    }
+    const record = asRecord(value);
+    if (!record) return;
+    walked.add(record);
+    const bookingId = pickString(record.bookingId, record.booking_id);
+    if (bookingId) {
+      const parsed = readBooking(record);
+      if (parsed && !seen.has(parsed.bookingId)) {
+        seen.add(parsed.bookingId);
+        found.push(parsed);
+      }
+    }
+    visit(record.data);
+    visit(record.bookings);
+    visit(record.results);
+  };
+  visit(payload);
+  return found;
+}
+
 export function readBooking(payload: unknown): BookingResult | null {
   const root = asRecord(payload);
   const data = asRecord(root?.data) ?? root;

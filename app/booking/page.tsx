@@ -5,7 +5,7 @@ import BookingFlow from "@/components/booking/booking-flow";
 
 export const metadata: Metadata = {
   title: "Booking",
-  description: "Prebook a room rate, then confirm the guest details.",
+  description: "Review a pre-booking, then confirm guest and payment details.",
 };
 
 export default function BookingPage() {

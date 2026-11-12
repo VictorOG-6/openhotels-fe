@@ -4,18 +4,20 @@ import Link from "next/link";
 import { FormEvent, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 
+import { readAssistantContext, readGuestDefaults } from "@/lib/assistant/context";
 import {
   errorMessage,
   fetchBook,
-  fetchBooking,
   fetchPrebook,
   isAbortError,
   type BookPayload,
 } from "@/lib/hotels/api";
 import { cleanPhone, formatMoney, formatStayDate, guestLabel } from "@/lib/hotels/format";
 import { readBooking, readPrebook } from "@/lib/hotels/parse";
+import { findPrebook, isPrebookId, markPrebookBooked, rememberPrebook } from "@/lib/hotels/prebook-store";
 import { buildHotelHref, readStay } from "@/lib/hotels/query";
 import type { BookingResult, PrebookResult } from "@/lib/hotels/types";
+import BookingsList from "@/components/booking/bookings-list";
 
 const PAYMENT_METHODS = [
   { value: "ACC_CREDIT_CARD", label: "Account card" },
@@ -26,12 +28,20 @@ const PAYMENT_METHODS = [
 export default function BookingFlow() {
   const searchParams = useSearchParams();
   const offerId = searchParams.get("offerId")?.trim() || "";
+  const prebookId = searchParams.get("prebookId")?.trim() || "";
 
-  if (!offerId) return <BookingLookup />;
-  return <Checkout key={offerId} offerId={offerId} />;
+  if (prebookId) return <Checkout key={prebookId} existingPrebookId={prebookId} />;
+  if (offerId) return <Checkout key={offerId} offerId={offerId} />;
+  return <BookingsList />;
 }
 
-function Checkout({ offerId }: { offerId: string }) {
+function Checkout({
+  offerId,
+  existingPrebookId,
+}: {
+  offerId?: string;
+  existingPrebookId?: string;
+}) {
   const searchParams = useSearchParams();
   const slug = searchParams.get("location") || "";
   const hotelId = searchParams.get("hotelId") || "";
@@ -45,13 +55,56 @@ function Checkout({ offerId }: { offerId: string }) {
   const [submitting, setSubmitting] = useState(false);
   const [booking, setBooking] = useState<BookingResult | null>(null);
   const [sameGuest, setSameGuest] = useState(true);
+  const [guest, setGuest] = useState({ firstName: "", lastName: "", email: "" });
+  const [signedIn, setSignedIn] = useState(false);
+  const [savedStay, setSavedStay] = useState({ checkin: "", checkout: "" });
 
   useEffect(() => {
+    const defaults = readGuestDefaults();
+    setGuest(defaults);
+    setSignedIn(readSignedIn());
+  }, []);
+
+  useEffect(() => {
+    if (existingPrebookId) {
+      if (!isPrebookId(existingPrebookId)) {
+        setPhase("error");
+        setError("That pre-booking id is not valid.");
+        return;
+      }
+      const saved = findPrebook(existingPrebookId);
+      setSavedStay({
+        checkin: saved?.checkin || "",
+        checkout: saved?.checkout || "",
+      });
+      setPrebook({
+        prebookId: existingPrebookId,
+        price: saved?.price,
+        currency: saved?.currency,
+        hotelName: saved?.hotelName,
+        roomName: saved?.roomName,
+        cancellationChanged: false,
+        boardChanged: false,
+      });
+      setPhase("ready");
+      return;
+    }
+
+    if (!offerId) return;
     const controller = new AbortController();
     fetchPrebook(offerId, controller.signal)
       .then((payload) => {
         const result = readPrebook(payload);
         if (!result) throw new Error("The rate did not return a prebook id.");
+        rememberPrebook({
+          prebookId: result.prebookId,
+          hotelName: result.hotelName || quotedHotel,
+          roomName: result.roomName || quotedRoom,
+          price: result.price,
+          currency: result.currency,
+          checkin: stay.checkin || undefined,
+          checkout: stay.checkout || undefined,
+        });
         setPrebook(result);
         setPhase("ready");
       })
@@ -61,7 +114,7 @@ function Checkout({ offerId }: { offerId: string }) {
         setError(errorMessage(reason));
       });
     return () => controller.abort();
-  }, [offerId]);
+  }, [offerId, existingPrebookId, quotedHotel, quotedRoom, stay.checkin, stay.checkout]);
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -73,7 +126,7 @@ function Checkout({ offerId }: { offerId: string }) {
       email: text(form, "email"),
       phone: cleanPhone(text(form, "phone")),
     };
-    const guest = sameGuest
+    const leadGuest = sameGuest
       ? {
           occupancyNumber: 1,
           firstName: holder.firstName,
@@ -96,7 +149,7 @@ function Checkout({ offerId }: { offerId: string }) {
     const payload: BookPayload = {
       prebookId: prebook.prebookId,
       holder,
-      guests: [guest],
+      guests: [leadGuest],
       payment: { method },
     };
 
@@ -106,6 +159,7 @@ function Checkout({ offerId }: { offerId: string }) {
       const response = await fetchBook(payload);
       const result = readBooking(response);
       if (!result) throw new Error("The booking did not return a confirmation id.");
+      markPrebookBooked(prebook.prebookId);
       setBooking(result);
       setPhase("booked");
     } catch (reason) {
@@ -115,10 +169,15 @@ function Checkout({ offerId }: { offerId: string }) {
     }
   }
 
-  const backHref =
-    slug && hotelId
+  const backHref = existingPrebookId
+    ? "/bookings"
+    : slug && hotelId
       ? buildHotelHref({ ...stay, slug, hotelId, city: stay.city || quotedHotel })
       : "/hotels";
+  const checkin = stay.checkin || savedStay.checkin;
+  const checkout = stay.checkout || savedStay.checkout;
+  const hotelLabel = prebook?.hotelName || (existingPrebookId ? "Pre-booking" : quotedHotel);
+  const roomLabel = prebook?.roomName || (existingPrebookId ? "Held rate" : quotedRoom);
 
   if (phase === "booked" && booking) {
     return (
@@ -134,9 +193,14 @@ function Checkout({ offerId }: { offerId: string }) {
             <Row label="Total" value={formatMoney(booking.price, booking.currency || prebook?.currency || "USD")} />
           ) : null}
         </dl>
-        <Link href="/hotels" className="mt-6 inline-flex rounded-full bg-ink px-5 py-2.5 text-sm font-semibold text-white">
-          Browse more hotels
-        </Link>
+        <div className="mt-6 flex flex-wrap gap-3">
+          <Link href="/bookings" className="inline-flex rounded-full bg-ink px-5 py-2.5 text-sm font-semibold text-white">
+            View bookings
+          </Link>
+          <Link href="/hotels" className="inline-flex rounded-full border border-line px-5 py-2.5 text-sm font-semibold">
+            Browse more hotels
+          </Link>
+        </div>
       </section>
     );
   }
@@ -153,14 +217,20 @@ function Checkout({ offerId }: { offerId: string }) {
         </ol>
 
         {phase === "loading" ? (
-          <p className="mt-8 text-sm text-muted">Reserving {quotedRoom} so the rate can be confirmed.</p>
+          <p className="mt-8 text-sm text-muted">
+            {existingPrebookId
+              ? "Opening this pre-booking."
+              : `Reserving ${quotedRoom} so the rate can be confirmed.`}
+          </p>
         ) : null}
         {phase === "error" ? (
           <div className="mt-8 rounded-3xl bg-white p-6 ring-1 ring-ink/8" role="alert">
-            <p className="font-display text-3xl">This rate could not be prebooked.</p>
+            <p className="font-display text-3xl">
+              {existingPrebookId ? "This pre-booking could not be opened." : "This rate could not be prebooked."}
+            </p>
             <p className="mt-2 text-sm text-muted">{error}</p>
             <Link href={backHref} className="mt-4 inline-flex text-sm font-semibold text-clay">
-              Choose another room
+              {existingPrebookId ? "Back to bookings" : "Choose another room"}
             </Link>
           </div>
         ) : null}
@@ -169,9 +239,9 @@ function Checkout({ offerId }: { offerId: string }) {
           <form onSubmit={submit} className="mt-8 space-y-6">
             <fieldset className="grid gap-4 rounded-3xl bg-white p-5 ring-1 ring-ink/8 sm:grid-cols-2">
               <legend className="px-1 text-sm font-semibold">Booker</legend>
-              <Field label="First name" name="firstName" autoComplete="given-name" />
-              <Field label="Last name" name="lastName" autoComplete="family-name" />
-              <Field label="Email" name="email" type="email" autoComplete="email" />
+              <Field label="First name" name="firstName" autoComplete="given-name" defaultValue={guest.firstName} />
+              <Field label="Last name" name="lastName" autoComplete="family-name" defaultValue={guest.lastName} />
+              <Field label="Email" name="email" type="email" autoComplete="email" defaultValue={guest.email} />
               <Field label="Phone" name="phone" type="tel" autoComplete="tel" />
             </fieldset>
 
@@ -193,10 +263,21 @@ function Checkout({ offerId }: { offerId: string }) {
               </fieldset>
             )}
 
+            {signedIn ? null : (
+              <p className="rounded-3xl bg-sand px-4 py-3 text-sm leading-6">
+                Log in before confirming payment.{" "}
+                <Link className="font-semibold text-clay" href="/sign-up">Sign up</Link>
+                {" or "}
+                <Link className="font-semibold text-clay" href="/sign-in">log in</Link>
+                , then return to this pre-booking.
+              </p>
+            )}
+
             <fieldset className="rounded-3xl bg-white p-5 ring-1 ring-ink/8">
               <legend className="px-1 text-sm font-semibold">Payment method</legend>
               <p className="mb-3 text-sm text-muted">
-                The stay is charged with the partner account method. Card numbers are not collected here.
+                This confirms the pre-booking. Choose the partner account method that pays for the stay.
+                Card numbers are not entered on this page.
               </p>
               <div className="flex flex-wrap gap-2">
                 {PAYMENT_METHODS.map((method) => (
@@ -224,20 +305,24 @@ function Checkout({ offerId }: { offerId: string }) {
       </div>
 
       <aside className="h-fit rounded-3xl bg-white p-6 ring-1 ring-ink/8 lg:sticky lg:top-24">
-        <p className="text-sm text-muted">{prebook?.hotelName || quotedHotel}</p>
-        <h2 className="mt-1 font-display text-3xl">{prebook?.roomName || quotedRoom}</h2>
+        <p className="text-sm text-muted">{hotelLabel}</p>
+        <h2 className="mt-1 font-display text-3xl">{roomLabel}</h2>
         <p className="mt-3 text-sm text-muted">
-          {stay.checkin && stay.checkout
-            ? `${formatStayDate(stay.checkin)} – ${formatStayDate(stay.checkout)}`
-            : "Dates from your search"}
+          {checkin && checkout
+            ? `${formatStayDate(checkin)} – ${formatStayDate(checkout)}`
+            : "Complete payment before the hold expires."}
         </p>
-        <p className="mt-1 text-sm text-muted">{guestLabel(stay.adults, stay.children, stay.rooms)}</p>
+        {stay.checkin ? (
+          <p className="mt-1 text-sm text-muted">{guestLabel(stay.adults, stay.children, stay.rooms)}</p>
+        ) : null}
         {prebook?.boardName ? <p className="mt-3 text-sm">{prebook.boardName}</p> : null}
         {prebook?.cancellation ? <p className="mt-2 text-sm text-pine">{prebook.cancellation}</p> : null}
         <p className="mt-5 text-2xl font-semibold">
           {prebook?.price != null
-            ? formatMoney(prebook.price, prebook.currency || "USD")
-            : "Confirming price"}
+            ? formatMoney(prebook.price, prebook.currency || "NGN")
+            : existingPrebookId
+              ? "Held rate"
+              : "Confirming price"}
         </p>
         {prebook && prebook.priceDifferencePercent ? (
           <p className="mt-2 text-sm text-clay">
@@ -262,87 +347,20 @@ function Checkout({ offerId }: { offerId: string }) {
   );
 }
 
-function BookingLookup() {
-  const [bookingId, setBookingId] = useState("");
-  const [booking, setBooking] = useState<BookingResult | null>(null);
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
-
-  async function submit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    const id = bookingId.trim();
-    if (!/^[A-Za-z0-9_-]{1,64}$/.test(id)) {
-      setError("Enter the booking id from your confirmation.");
-      setBooking(null);
-      return;
-    }
-    setLoading(true);
-    setError("");
-    try {
-      const result = readBooking(await fetchBooking(id));
-      if (!result) throw new Error("No booking was returned.");
-      setBooking(result);
-    } catch (reason) {
-      setBooking(null);
-      setError(errorMessage(reason));
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  return (
-    <section className="mx-auto max-w-xl px-5 pb-20 pt-28">
-      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-clay">Booking</p>
-      <h1 className="mt-2 font-display text-5xl tracking-tight">Bookings start with a room.</h1>
-      <p className="mt-3 text-sm leading-6 text-muted">
-        Choose a hotel, prebook a rate, then confirm the guest details. If you already have a booking id, look it up here.
-      </p>
-      <Link href="/hotels" className="mt-6 inline-flex rounded-full bg-ink px-5 py-2.5 text-sm font-semibold text-white">
-        Find a hotel
-      </Link>
-      <form onSubmit={submit} className="mt-10 rounded-3xl bg-white p-5 ring-1 ring-ink/8">
-        <label className="block text-sm font-medium" htmlFor="booking-id">Booking id</label>
-        <input
-          id="booking-id"
-          value={bookingId}
-          onChange={(event) => setBookingId(event.target.value)}
-          className="mt-2 w-full rounded-2xl border border-line px-3 py-3 outline-none"
-        />
-        {error ? <p className="mt-3 text-sm text-clay" role="alert">{error}</p> : null}
-        <button
-          type="submit"
-          disabled={loading}
-          className="mt-4 rounded-full bg-clay px-5 py-2.5 text-sm font-semibold text-white disabled:opacity-60"
-        >
-          {loading ? "Looking up" : "Look up booking"}
-        </button>
-        {booking ? (
-          <dl className="mt-5 space-y-2 border-t border-line pt-4">
-            <Row label="Booking" value={booking.bookingId} />
-            <Row label="Status" value={booking.status || "Unknown"} />
-            <Row label="Hotel" value={booking.hotelName || "Hotel"} />
-            {booking.checkin && booking.checkout ? (
-              <Row label="Stay" value={`${formatStayDate(booking.checkin)} – ${formatStayDate(booking.checkout)}`} />
-            ) : null}
-          </dl>
-        ) : null}
-      </form>
-    </section>
-  );
-}
-
 function Field({
   label,
   name,
   type = "text",
   autoComplete,
   className = "",
+  defaultValue,
 }: {
   label: string;
   name: string;
   type?: string;
   autoComplete?: string;
   className?: string;
+  defaultValue?: string;
 }) {
   return (
     <label className={`block text-sm font-medium ${className}`}>
@@ -352,6 +370,7 @@ function Field({
         type={type}
         required
         autoComplete={autoComplete}
+        defaultValue={defaultValue}
         maxLength={type === "email" ? 120 : 80}
         className="mt-1 w-full rounded-2xl border border-line px-3 py-3 font-normal outline-none"
       />
@@ -366,6 +385,10 @@ function Row({ label, value }: { label: string; value: string }) {
       <dd className="text-right font-medium">{value}</dd>
     </div>
   );
+}
+
+function readSignedIn() {
+  return readAssistantContext().isSignedIn;
 }
 
 function text(form: FormData, key: string) {

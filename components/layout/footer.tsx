@@ -29,7 +29,7 @@ export default function Footer() {
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">Visit</p>
           <ul className="mt-4 space-y-2 text-sm">
-            <li><Link className="hover:text-white" href="/booking">Booking</Link></li>
+            <li><Link className="hover:text-white" href="/bookings">Bookings</Link></li>
             <li><Link className="hover:text-white" href="/about">About</Link></li>
             <li><Link className="hover:text-white" href="/contact">Contact</Link></li>
             <li><Link className="hover:text-white" href="/#how-it-works">How booking works</Link></li>

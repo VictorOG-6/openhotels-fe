@@ -129,6 +129,26 @@ export function fetchBooking(bookingId: string, signal?: AbortSignal) {
   return request(`/hotels/bookings/${encodeURIComponent(bookingId)}`, { signal });
 }
 
+export function fetchBookings(signal?: AbortSignal) {
+  const end = new Date();
+  end.setDate(end.getDate() + 1);
+  const start = new Date();
+  start.setFullYear(start.getFullYear() - 1);
+  return request(
+    `/hotels/bookings${toQuery({
+      bookingStartDate: isoDay(start),
+      bookingEndDate: isoDay(end),
+    })}`,
+    { signal },
+  );
+}
+
+function isoDay(date: Date) {
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${date.getFullYear()}-${month}-${day}`;
+}
+
 async function request(path: string, init: RequestInit = {}) {
   const base = process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, "");
   if (!base) {
