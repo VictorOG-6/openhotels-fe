@@ -279,7 +279,7 @@ function SignUpForm() {
               checked={acceptTerms}
               onChange={(event) => setAcceptTerms(event.target.checked)}
             />
-            <span>
+            <span className="text-neutral-500">
               I agree to the{" "}
               <Link
                 href="/terms-of-service"
