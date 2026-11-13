@@ -1,7 +1,7 @@
 import { jwtDecode } from "jwt-decode";
 import type { NextResponse } from "next/server";
 import type { UserRole } from "@/types";
-import { API_URL } from "@/lib/constants";
+import { API_URL, buildApiUrl } from "@/lib/constants";
 
 interface DecodedToken {
   exp: number;
@@ -129,7 +129,7 @@ export interface AuthSessionResult {
 
 function getApiUrl(): string | undefined {
   if (API_URL) return API_URL;
-  const fallback = process.env.API_URL?.replace(/\/$/, "");
+  const fallback = process.env.API_URL?.replace(/\/+$/, "");
   return fallback || undefined;
 }
 
@@ -155,11 +155,10 @@ export function getAuthCookieOptions(token: string) {
 async function refreshTokens(
   refreshToken: string,
 ): Promise<{ access_token: string; refresh_token: string } | null> {
-  const apiUrl = getApiUrl();
-  if (!apiUrl) return null;
+  if (!getApiUrl()) return null;
 
   try {
-    const response = await fetch(`${apiUrl}/auth/refresh`, {
+    const response = await fetch(buildApiUrl("/auth/refresh"), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ refresh_token: refreshToken }),
@@ -177,11 +176,10 @@ async function refreshTokens(
 async function fetchUser(
   accessToken: string,
 ): Promise<{ role?: UserRole } | null> {
-  const apiUrl = getApiUrl();
-  if (!apiUrl) return null;
+  if (!getApiUrl()) return null;
 
   try {
-    const response = await fetch(`${apiUrl}/user`, {
+    const response = await fetch(buildApiUrl("/user"), {
       headers: { Authorization: `Bearer ${accessToken}` },
       cache: "no-store",
     });

@@ -1,7 +1,7 @@
 "use client";
 
 import { persistAuthSession } from "@/lib/auth-session";
-import { API_URL } from "@/lib/constants";
+import { buildApiUrl } from "@/lib/constants";
 import processError from "@/lib/error";
 import { getFirstFieldErrorMessage } from "@/lib/form";
 import { $http } from "@/lib/http";
@@ -152,7 +152,7 @@ function SignUpForm() {
 
   const signInWithGoogle = () => {
     setIsGoogleAuthLoading(true);
-    window.location.href = `${API_URL}/auth/google`;
+    window.location.href = buildApiUrl("/auth/google");
   };
 
   const handleFormError = (errors: FieldErrors<SignUpFormField>) => {

@@ -1,7 +1,7 @@
 "use client";
 
 import { persistAuthSession } from "@/lib/auth-session";
-import { API_URL } from "@/lib/constants";
+import { buildApiUrl } from "@/lib/constants";
 import processError from "@/lib/error";
 import { getFirstFieldErrorMessage } from "@/lib/form";
 import { $http } from "@/lib/http";
@@ -96,7 +96,7 @@ function SignInForm() {
       redirectUri && redirectUri.startsWith("/")
         ? `?redirect_uri=${encodeURIComponent(redirectUri)}`
         : "";
-    window.location.href = `${API_URL}/auth/google${next}`;
+    window.location.href = `${buildApiUrl("/auth/google")}${next}`;
   };
 
   const handleFormError = (errors: FieldErrors<SignInFormField>) => {
