@@ -75,10 +75,16 @@ const sections = [
 export default function TermsOfServicePage() {
   return (
     <article className="mx-auto max-w-3xl px-5 pb-24 pt-28 md:px-8">
-      <p className="text-xs font-semibold uppercase tracking-[0.22em] text-clay">Legal</p>
-      <h1 className="mt-3 font-display text-5xl tracking-tight md:text-6xl">Terms of Service</h1>
-      <p className="mt-4 text-sm text-muted">Last updated: November 13, 2026</p>
-      <div className="mt-12 space-y-10 text-base leading-7 text-muted">
+      <p className="text-xs font-semibold uppercase tracking-[0.22em] text-clay">
+        Legal
+      </p>
+      <h1 className="mt-3 font-display text-5xl tracking-tight md:text-6xl">
+        Terms of Service
+      </h1>
+      <p className="mt-4 text-sm text-neutral-500">
+        Last updated: November 13, 2026
+      </p>
+      <div className="mt-12 space-y-10 text-base leading-7 text-neutral-500">
         {sections.map((section) => (
           <section key={section.title}>
             <h2 className="font-display text-2xl text-ink">{section.title}</h2>
@@ -91,13 +97,19 @@ export default function TermsOfServicePage() {
         ))}
         <section>
           <h2 className="font-display text-2xl text-ink">Contact</h2>
-          <p className="mt-3 text-base leading-7 text-muted">
+          <p className="mt-3 text-base leading-7 text-neutral-500">
             Questions about these Terms:{" "}
-            <a className="font-medium text-clay hover:text-clay-dark" href="mailto:hello@openhotels.com">
+            <a
+              className="font-medium text-clay hover:text-clay-dark"
+              href="mailto:hello@openhotels.com"
+            >
               hello@openhotels.com
             </a>{" "}
             or our{" "}
-            <Link className="font-medium text-clay hover:text-clay-dark" href="/contact">
+            <Link
+              className="font-medium text-clay hover:text-clay-dark"
+              href="/contact"
+            >
               contact page
             </Link>
             .

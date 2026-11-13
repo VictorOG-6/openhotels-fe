@@ -77,18 +77,18 @@ function AuthCallbackContent() {
             <h2 className="text-xl font-semibold text-red-600 mb-2">
               Authentication Failed
             </h2>
-            <p className="text-gray-600 mb-4">{error}</p>
-            <p className="text-sm text-gray-500">Redirecting to login...</p>
+            <p className="mb-4 text-neutral-500">{error}</p>
+            <p className="text-sm text-neutral-500">Redirecting to login...</p>
           </>
         ) : (
           <>
             <div className="w-16 h-16 mx-auto mb-4">
               <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-blue-500"></div>
             </div>
-            <h2 className="text-xl font-semibold text-gray-800 mb-2">
+            <h2 className="mb-2 text-xl font-semibold text-ink">
               {status}
             </h2>
-            <p className="text-gray-600">Please wait...</p>
+            <p className="text-neutral-500">Please wait...</p>
           </>
         )}
       </div>
@@ -105,10 +105,10 @@ export default function AuthCallbackPage() {
             <div className="w-16 h-16 mx-auto mb-4">
               <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-blue-500"></div>
             </div>
-            <h2 className="text-xl font-semibold text-gray-800 mb-2">
+            <h2 className="mb-2 text-xl font-semibold text-ink">
               Loading...
             </h2>
-            <p className="text-gray-600">Please wait...</p>
+            <p className="text-neutral-500">Please wait...</p>
           </div>
         </div>
       }

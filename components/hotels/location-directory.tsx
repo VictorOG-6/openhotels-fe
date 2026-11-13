@@ -32,7 +32,10 @@ export default function LocationDirectory() {
           setHotels((current) => ({ ...current, [location.slug]: list }));
         } catch (error) {
           if (isAbortError(error) || controller.signal.aborted) return;
-          setErrors((current) => ({ ...current, [location.slug]: errorMessage(error) }));
+          setErrors((current) => ({
+            ...current,
+            [location.slug]: errorMessage(error),
+          }));
         }
       }
     });
@@ -43,12 +46,15 @@ export default function LocationDirectory() {
 
   return (
     <div className="mx-auto max-w-6xl px-5 pb-20 pt-28 md:px-8">
-      <p className="text-xs font-semibold uppercase tracking-[0.22em] text-clay">Hotels</p>
+      <p className="text-xs font-semibold uppercase tracking-[0.22em] text-clay">
+        Hotels
+      </p>
       <h1 className="mt-2 max-w-3xl font-display text-5xl tracking-tight md:text-6xl">
         Hotels in places people return to.
       </h1>
-      <p className="mt-4 max-w-2xl text-base leading-7 text-muted">
-        Pick a city to filter stays and see them on the map. A hotel here opens that city, not a single room.
+      <p className="mt-4 max-w-2xl text-base leading-7 text-neutral-500">
+        Pick a city to filter stays and see them on the map. A hotel here opens
+        that city, not a single room.
       </p>
       <div className="mt-12 divide-y divide-line border-t border-line">
         {LOCATIONS.map((location) => (
@@ -85,36 +91,60 @@ function LocationGroup({
           />
         </div>
         <h2 className="mt-4 font-display text-4xl">{location.city}</h2>
-        <p className="text-sm text-muted">{location.country}</p>
+        <p className="text-sm text-neutral-500">{location.country}</p>
         <p className="mt-2 max-w-sm text-sm leading-6">{location.blurb}</p>
       </StayLink>
       <div>
         <div className="flex items-center justify-between">
-          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted">In {location.city}</p>
-          <StayLink location={location} className="text-sm font-semibold text-clay">
+          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-neutral-500">
+            In {location.city}
+          </p>
+          <StayLink
+            location={location}
+            className="text-sm font-semibold text-clay"
+          >
             Browse {location.city}
           </StayLink>
         </div>
-        {error ? <p className="mt-4 text-sm text-muted">{error} You can still open the city.</p> : null}
+        {error ? (
+          <p className="mt-4 text-sm text-neutral-500">
+            {error} You can still open the city.
+          </p>
+        ) : null}
         {!hotels && !error ? (
           <div className="mt-4 space-y-3" aria-hidden>
             {Array.from({ length: 3 }, (_, index) => (
-              <div key={index} className="h-20 animate-pulse rounded-2xl bg-sand" />
+              <div
+                key={index}
+                className="h-20 animate-pulse rounded-2xl bg-sand"
+              />
             ))}
           </div>
         ) : null}
         {hotels && hotels.length === 0 && !error ? (
-          <p className="mt-4 text-sm text-muted">No hotels were returned for {location.city} yet.</p>
+          <p className="mt-4 text-sm text-neutral-500">
+            No hotels were returned for {location.city} yet.
+          </p>
         ) : null}
         <ul className="mt-4 divide-y divide-line">
           {hotels?.map((hotel) => (
             <li key={hotel.id}>
-              <StayLink location={location} focus={hotel.id} className="flex items-center gap-4 py-3">
+              <StayLink
+                location={location}
+                focus={hotel.id}
+                className="flex items-center gap-4 py-3"
+              >
                 <div className="relative h-16 w-20 shrink-0 overflow-hidden rounded-2xl">
-                  <Photo src={hotel.image} alt="" className="absolute inset-0" />
+                  <Photo
+                    src={hotel.image}
+                    alt=""
+                    className="absolute inset-0"
+                  />
                 </div>
                 <span className="min-w-0 flex-1">
-                  <span className="block truncate font-medium">{hotel.name}</span>
+                  <span className="block truncate font-medium">
+                    {hotel.name}
+                  </span>
                   <Stars value={hotel.stars} />
                 </span>
               </StayLink>

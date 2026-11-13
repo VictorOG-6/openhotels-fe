@@ -10,7 +10,13 @@ export const metadata: Metadata = {
 
 export default function BookingPage() {
   return (
-    <Suspense fallback={<div className="px-5 pt-28 text-sm text-muted">Opening booking</div>}>
+    <Suspense
+      fallback={
+        <div className="px-5 pt-28 text-sm text-neutral-500">
+          Opening booking
+        </div>
+      }
+    >
       <BookingFlow />
     </Suspense>
   );

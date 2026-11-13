@@ -5,12 +5,19 @@ import BookingFlow from "@/components/booking/booking-flow";
 
 export const metadata: Metadata = {
   title: "Bookings",
-  description: "Review pre-bookings and confirmed stays, then complete payment on a hold.",
+  description:
+    "Review pre-bookings and confirmed stays, then complete payment on a hold.",
 };
 
 export default function BookingsPage() {
   return (
-    <Suspense fallback={<div className="px-5 pt-28 text-sm text-muted">Opening bookings</div>}>
+    <Suspense
+      fallback={
+        <div className="px-5 pt-28 text-sm text-neutral-500">
+          Opening bookings
+        </div>
+      }
+    >
       <BookingFlow />
     </Suspense>
   );

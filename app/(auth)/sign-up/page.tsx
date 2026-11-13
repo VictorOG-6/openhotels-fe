@@ -169,7 +169,7 @@ function SignUpForm() {
         <h1 className="mt-3 font-display text-4xl tracking-tight">
           Create your account
         </h1>
-        <p className="mt-3 text-sm leading-6 text-muted">
+        <p className="mt-3 text-sm leading-6 text-neutral-500">
           Book stays, manage pre-bookings, and pick up where you left off.
         </p>
       </header>
@@ -179,7 +179,7 @@ function SignUpForm() {
           onClick={signInWithGoogle}
           loading={isGoogleAuthLoading}
         />
-        <div className="flex items-center gap-3 text-xs uppercase tracking-wide text-muted">
+        <div className="flex items-center gap-3 text-xs uppercase tracking-wide text-neutral-500">
           <span className="h-px flex-1 bg-line" />
           <span>or</span>
           <span className="h-px flex-1 bg-line" />
@@ -218,7 +218,7 @@ function SignUpForm() {
               />
               <button
                 type="button"
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted hover:text-ink"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-500 hover:text-ink"
                 onClick={() => setShowPassword((value) => !value)}
                 aria-label={showPassword ? "Hide password" : "Show password"}
               >
@@ -239,7 +239,7 @@ function SignUpForm() {
                     key={rule.key}
                     className={cn(
                       "flex items-center gap-2",
-                      met ? "text-pine" : "text-muted",
+                      met ? "text-pine" : "text-neutral-500",
                     )}
                   >
                     {met ? <Check size={14} /> : <X size={14} />}
@@ -261,7 +261,7 @@ function SignUpForm() {
               />
               <button
                 type="button"
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted hover:text-ink"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-500 hover:text-ink"
                 onClick={() => setShowConfirmPassword((value) => !value)}
                 aria-label={
                   showConfirmPassword ? "Hide password" : "Show password"
@@ -272,7 +272,7 @@ function SignUpForm() {
             </div>
           </label>
 
-          <label className="flex items-start gap-2 text-sm text-muted">
+          <label className="flex items-start gap-2 text-sm text-neutral-500">
             <input
               type="checkbox"
               className="mt-1 h-4 w-4 rounded border-line"
@@ -283,14 +283,14 @@ function SignUpForm() {
               I agree to the{" "}
               <Link
                 href="/terms-of-service"
-                className="font-medium text-clay hover:text-clay-dark"
+                className="cursor-pointer font-medium text-clay underline underline-offset-2 hover:text-clay-dark"
               >
                 Terms of Service
               </Link>{" "}
               and{" "}
               <Link
                 href="/privacy-policy"
-                className="font-medium text-clay hover:text-clay-dark"
+                className="cursor-pointer font-medium text-clay underline underline-offset-2 hover:text-clay-dark"
               >
                 Privacy Policy
               </Link>
@@ -318,7 +318,7 @@ function SignUpForm() {
           Already have an account?{" "}
           <Link
             href="/sign-in"
-            className="font-semibold text-clay hover:text-clay-dark"
+            className="cursor-pointer font-semibold text-clay hover:text-clay-dark"
           >
             Sign in
           </Link>

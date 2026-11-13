@@ -1,7 +1,11 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import type { LatLngBoundsExpression, Map as LeafletMap, Marker as LeafletMarker } from "leaflet";
+import type {
+  LatLngBoundsExpression,
+  Map as LeafletMap,
+  Marker as LeafletMarker,
+} from "leaflet";
 
 export type MapHotel = {
   id: string;
@@ -45,11 +49,18 @@ export default function HotelMap({
   const [mapError, setMapError] = useState("");
 
   const markerKey = hotels
-    .map((hotel) => `${hotel.id}:${hotel.latitude}:${hotel.longitude}:${hotel.priceLabel}`)
+    .map(
+      (hotel) =>
+        `${hotel.id}:${hotel.latitude}:${hotel.longitude}:${hotel.priceLabel}`,
+    )
     .join("|");
   const centerKey = center ? `${center.lat},${center.lng}` : "";
   const plotted = hotels.filter(hasCoordinates);
-  const view = center ?? (plotted[0] ? { lat: plotted[0].latitude, lng: plotted[0].longitude } : null);
+  const view =
+    center ??
+    (plotted[0]
+      ? { lat: plotted[0].latitude, lng: plotted[0].longitude }
+      : null);
   const viewKey = view ? `${view.lat.toFixed(4)},${view.lng.toFixed(4)}` : "";
 
   useEffect(() => {
@@ -129,7 +140,7 @@ export default function HotelMap({
 
   if (!view) {
     return (
-      <div className="grid h-full min-h-80 place-items-center rounded-3xl bg-sand p-6 text-center text-sm text-muted">
+      <div className="grid h-full min-h-80 place-items-center rounded-3xl bg-sand p-6 text-center text-sm text-neutral-500">
         The map appears when this search has coordinates.
       </div>
     );
@@ -139,12 +150,12 @@ export default function HotelMap({
     <div className="relative h-full min-h-80 overflow-hidden rounded-3xl ring-1 ring-ink/10">
       <div ref={containerRef} className="h-full w-full" />
       {!ready && !mapError ? (
-        <div className="absolute inset-0 grid place-items-center bg-sand text-sm text-muted">
+        <div className="absolute inset-0 grid place-items-center bg-sand text-sm text-neutral-500">
           Loading map
         </div>
       ) : null}
       {mapError ? (
-        <div className="absolute inset-0 grid place-items-center bg-sand p-6 text-center text-sm text-muted">
+        <div className="absolute inset-0 grid place-items-center bg-sand p-6 text-center text-sm text-neutral-500">
           {mapError}
         </div>
       ) : null}
@@ -159,7 +170,8 @@ function mountLeaflet(
 ): MapHandle {
   const map = L.map(element, { scrollWheelZoom: true });
   L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
-    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+    attribution:
+      '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
     maxZoom: 19,
   }).addTo(map);
 
@@ -204,7 +216,10 @@ function mountLeaflet(
     },
     setActive(id) {
       markers.forEach((marker, markerId) => {
-        marker.getElement()?.querySelector(".map-pin")?.classList.toggle("is-active", markerId === id);
+        marker
+          .getElement()
+          ?.querySelector(".map-pin")
+          ?.classList.toggle("is-active", markerId === id);
         marker.setZIndexOffset(markerId === id ? 1000 : 0);
       });
     },
@@ -231,7 +246,10 @@ function mountGoogle(
     clickableIcons: false,
     gestureHandling: "greedy",
   });
-  const pills = new Map<string, { setActive: (active: boolean) => void; remove: () => void }>();
+  const pills = new Map<
+    string,
+    { setActive: (active: boolean) => void; remove: () => void }
+  >();
 
   return {
     setPlaces(hotels, center) {
@@ -241,9 +259,15 @@ function mountGoogle(
       const plotted = hotels.filter(hasCoordinates);
 
       for (const hotel of plotted) {
-        const position = new google.maps.LatLng(hotel.latitude, hotel.longitude);
+        const position = new google.maps.LatLng(
+          hotel.latitude,
+          hotel.longitude,
+        );
         bounds.extend(position);
-        pills.set(hotel.id, createPricePill(google, map, hotel, position, handlers));
+        pills.set(
+          hotel.id,
+          createPricePill(google, map, hotel, position, handlers),
+        );
       }
 
       if (plotted.length === 1) {
@@ -339,7 +363,9 @@ function ensureLeafletCss() {
 
 async function loadLeaflet(): Promise<LeafletNamespace> {
   const mod = await import("leaflet");
-  const candidate = (mod as { default?: LeafletNamespace }).default ?? (mod as unknown as LeafletNamespace);
+  const candidate =
+    (mod as { default?: LeafletNamespace }).default ??
+    (mod as unknown as LeafletNamespace);
   return candidate;
 }
 
@@ -370,11 +396,11 @@ type PinHandlers = {
 
 type LeafletNamespace = {
   map: (element: HTMLElement, options?: object) => LeafletMap;
-  tileLayer: (url: string, options?: object) => { addTo: (map: LeafletMap) => void };
-  marker: (
-    latlng: [number, number],
+  tileLayer: (
+    url: string,
     options?: object,
-  ) => LeafletMarker;
+  ) => { addTo: (map: LeafletMap) => void };
+  marker: (latlng: [number, number], options?: object) => LeafletMarker;
   divIcon: (options: object) => object;
   featureGroup: (layers: LeafletMarker[]) => {
     getBounds: () => { pad: (ratio: number) => object };
@@ -403,6 +429,9 @@ type GoogleNamespace = {
     Map: new (element: HTMLElement, options: object) => GoogleMap;
     OverlayView: new () => GoogleOverlay;
     LatLng: new (lat: number, lng: number) => object;
-    LatLngBounds: new () => { extend: (position: object) => void; isEmpty: () => boolean };
+    LatLngBounds: new () => {
+      extend: (position: object) => void;
+      isEmpty: () => boolean;
+    };
   };
 };

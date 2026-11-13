@@ -113,7 +113,7 @@ function SignInForm() {
         <h1 className="mt-3 font-display text-4xl tracking-tight">
           Welcome back
         </h1>
-        <p className="mt-3 text-sm leading-6 text-muted">
+        <p className="mt-3 text-sm leading-6 text-neutral-500">
           Sign in to see bookings, pre-bookings, and saved stays.
         </p>
       </header>
@@ -122,7 +122,7 @@ function SignInForm() {
           onClick={signInWithGoogle}
           loading={isGoogleAuthLoading}
         />
-        <div className="flex items-center gap-3 text-xs uppercase tracking-wide text-muted">
+        <div className="flex items-center gap-3 text-xs uppercase tracking-wide text-neutral-500">
           <span className="h-px flex-1 bg-line" />
           <span>or</span>
           <span className="h-px flex-1 bg-line" />
@@ -152,7 +152,7 @@ function SignInForm() {
               />
               <button
                 type="button"
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted hover:text-ink"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-500 hover:text-ink"
                 onClick={() => setShowPassword((value) => !value)}
                 aria-label={showPassword ? "Hide password" : "Show password"}
               >
@@ -179,7 +179,7 @@ function SignInForm() {
           New here?{" "}
           <Link
             href="/sign-up"
-            className="font-semibold text-clay hover:text-clay-dark"
+            className="cursor-pointer font-semibold text-clay hover:text-clay-dark"
           >
             Create an account
           </Link>

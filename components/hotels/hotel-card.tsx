@@ -31,27 +31,39 @@ export default function HotelCard({
         active && "ring-2 ring-ink",
       )}
     >
-      <Link href={href} className="grid grid-cols-1 sm:grid-cols-[220px_minmax(0,1fr)]">
+      <Link
+        href={href}
+        className="grid grid-cols-1 sm:grid-cols-[220px_minmax(0,1fr)]"
+      >
         <div className="relative h-52 sm:h-full sm:min-h-44">
           <Photo src={hotel.image} alt="" className="absolute inset-0" />
         </div>
         <div className="flex flex-col gap-3 p-5">
           <div className="flex items-start justify-between gap-3">
             <div>
-              {place ? <p className="text-sm text-muted">{place}</p> : null}
-              <h3 className="font-display text-2xl leading-tight">{hotel.name}</h3>
+              {place ? (
+                <p className="text-sm text-neutral-500">{place}</p>
+              ) : null}
+              <h3 className="font-display text-2xl leading-tight">
+                {hotel.name}
+              </h3>
             </div>
             {score != null ? (
               <p className="rounded-full bg-sand px-2.5 py-1 text-sm font-semibold">
                 {score.toFixed(1)}
                 {hotel.reviewCount ? (
-                  <span className="font-normal text-muted"> ({hotel.reviewCount})</span>
+                  <span className="font-normal text-neutral-500">
+                    {" "}
+                    ({hotel.reviewCount})
+                  </span>
                 ) : null}
               </p>
             ) : null}
           </div>
           {hotel.description ? (
-            <p className="line-clamp-2 text-sm leading-6 text-muted">{hotel.description}</p>
+            <p className="line-clamp-2 text-sm leading-6 text-neutral-500">
+              {hotel.description}
+            </p>
           ) : null}
           <div className="mt-auto flex items-end justify-between gap-3">
             <div className="space-y-1">
@@ -59,7 +71,7 @@ export default function HotelCard({
               {hotel.refundable === true ? (
                 <p className="text-xs font-medium text-pine">Refundable rate</p>
               ) : hotel.refundable === false ? (
-                <p className="text-xs text-muted">Non-refundable</p>
+                <p className="text-xs text-neutral-500">Non-refundable</p>
               ) : null}
             </div>
             <p className="text-right">
@@ -68,8 +80,11 @@ export default function HotelCard({
                   <span className="text-lg font-semibold">
                     {formatMoney(hotel.price, hotel.currency || "USD")}
                   </span>
-                  <span className="block text-xs text-muted">
-                    total{nights > 0 ? ` · ${nights} night${nights === 1 ? "" : "s"}` : ""}
+                  <span className="block text-xs text-neutral-500">
+                    total
+                    {nights > 0
+                      ? ` · ${nights} night${nights === 1 ? "" : "s"}`
+                      : ""}
                   </span>
                 </>
               ) : (

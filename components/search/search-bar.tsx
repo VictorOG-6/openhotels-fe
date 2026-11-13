@@ -92,7 +92,9 @@ export default function SearchBar({
       item.country.toLowerCase().includes(query)
     );
   }).slice(0, 6);
-  const exactMatch = LOCATIONS.some((item) => item.city.toLowerCase() === query);
+  const exactMatch = LOCATIONS.some(
+    (item) => item.city.toLowerCase() === query,
+  );
 
   function setChildCount(count: number) {
     setChildren(count);
@@ -106,7 +108,10 @@ export default function SearchBar({
   function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const resolved = hideLocation
-      ? { ...(destination ?? EMPTY_DESTINATION), city: destination?.city || location }
+      ? {
+          ...(destination ?? EMPTY_DESTINATION),
+          city: destination?.city || location,
+        }
       : resolveDestination(location);
 
     if (!resolved?.slug || !resolved.city) {
@@ -139,7 +144,7 @@ export default function SearchBar({
       <div className="grid grid-cols-1 rounded-[28px] bg-white text-ink shadow-[0_24px_70px_rgb(26_23_20_/_22%)] md:grid-cols-[minmax(0,1.35fr)_minmax(0,0.9fr)_minmax(0,0.9fr)_minmax(0,1fr)_auto] md:items-center md:rounded-full">
         {hideLocation ? null : (
           <label className="relative flex flex-col justify-center px-5 py-3 md:px-6">
-            <span className="text-[10px] font-semibold uppercase tracking-[0.16em] text-muted">
+            <span className="text-[10px] font-semibold uppercase tracking-[0.16em] text-neutral-500">
               Where
             </span>
             <input
@@ -177,7 +182,9 @@ export default function SearchBar({
                       className="flex w-full flex-col rounded-2xl px-3 py-2 text-left hover:bg-sand"
                     >
                       <span className="font-medium">{item.city}</span>
-                      <span className="text-xs text-muted">{item.country}</span>
+                      <span className="text-xs text-neutral-500">
+                        {item.country}
+                      </span>
                     </button>
                   </li>
                 ))}
@@ -203,7 +210,7 @@ export default function SearchBar({
             hideLocation && "md:border-l-0",
           )}
         >
-          <span className="text-[10px] font-semibold uppercase tracking-[0.16em] text-muted">
+          <span className="text-[10px] font-semibold uppercase tracking-[0.16em] text-neutral-500">
             Check in
           </span>
           <input
@@ -226,7 +233,7 @@ export default function SearchBar({
         </label>
 
         <label className="flex flex-col justify-center border-t border-line px-5 py-3 md:border-t-0 md:border-l md:px-6">
-          <span className="text-[10px] font-semibold uppercase tracking-[0.16em] text-muted">
+          <span className="text-[10px] font-semibold uppercase tracking-[0.16em] text-neutral-500">
             Check out
           </span>
           <input
@@ -237,7 +244,8 @@ export default function SearchBar({
             onChange={(event) => setCheckout(event.target.value)}
             onFocus={(event) => {
               const today = todayString();
-              event.currentTarget.min = checkin && checkin > today ? checkin : today;
+              event.currentTarget.min =
+                checkin && checkin > today ? checkin : today;
               setSuggestOpen(false);
               setGuestOpen(false);
             }}
@@ -256,7 +264,7 @@ export default function SearchBar({
             }}
             className="flex w-full flex-col justify-center px-5 py-3 text-left md:px-6"
           >
-            <span className="text-[10px] font-semibold uppercase tracking-[0.16em] text-muted">
+            <span className="text-[10px] font-semibold uppercase tracking-[0.16em] text-neutral-500">
               Guests
             </span>
             <span className="truncate text-sm font-medium">
@@ -269,15 +277,40 @@ export default function SearchBar({
               aria-label="Guests and rooms"
               className="absolute right-0 top-[calc(100%+10px)] z-40 w-[min(100vw-2rem,22rem)] rounded-3xl bg-white p-4 text-left shadow-2xl ring-1 ring-ink/10"
             >
-              <Stepper label="Adults" hint="Ages 18+" value={adults} min={1} max={10} onChange={setAdults} />
-              <Stepper label="Children" hint="Ages 0–17" value={children} min={0} max={8} onChange={setChildCount} />
-              <Stepper label="Rooms" value={rooms} min={1} max={8} onChange={setRooms} />
+              <Stepper
+                label="Adults"
+                hint="Ages 18+"
+                value={adults}
+                min={1}
+                max={10}
+                onChange={setAdults}
+              />
+              <Stepper
+                label="Children"
+                hint="Ages 0–17"
+                value={children}
+                min={0}
+                max={8}
+                onChange={setChildCount}
+              />
+              <Stepper
+                label="Rooms"
+                value={rooms}
+                min={1}
+                max={8}
+                onChange={setRooms}
+              />
               {children > 0 ? (
                 <div className="mt-3 border-t border-line pt-3">
-                  <p className="text-xs text-muted">Child ages are sent with the rate request.</p>
+                  <p className="text-xs text-neutral-500">
+                    Child ages are sent with the rate request.
+                  </p>
                   <div className="mt-2 grid grid-cols-2 gap-2">
                     {childAges.map((age, index) => (
-                      <label key={index} className="text-xs font-medium text-muted">
+                      <label
+                        key={index}
+                        className="text-xs font-medium text-neutral-500"
+                      >
                         Child {index + 1}
                         <select
                           value={age}
@@ -321,7 +354,13 @@ export default function SearchBar({
         </div>
       </div>
       {error ? (
-        <p role="alert" className={cn("mt-3 text-center text-sm", tone === "overlay" ? "text-white" : "text-clay")}>
+        <p
+          role="alert"
+          className={cn(
+            "mt-3 text-center text-sm",
+            tone === "overlay" ? "text-white" : "text-clay",
+          )}
+        >
           {error}
         </p>
       ) : null}
@@ -348,7 +387,9 @@ function Stepper({
     <div className="flex items-center justify-between gap-4 py-2">
       <span>
         <span className="block text-sm font-medium">{label}</span>
-        {hint ? <span className="block text-xs text-muted">{hint}</span> : null}
+        {hint ? (
+          <span className="block text-xs text-neutral-500">{hint}</span>
+        ) : null}
       </span>
       <span className="flex items-center gap-3">
         <button

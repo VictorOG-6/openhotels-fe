@@ -1,7 +1,12 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useParams, usePathname, useRouter, useSearchParams } from "next/navigation";
+import {
+  useParams,
+  usePathname,
+  useRouter,
+  useSearchParams,
+} from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 
 import HotelCard from "@/components/hotels/hotel-card";
@@ -16,7 +21,9 @@ import type { StayHotel } from "@/lib/hotels/types";
 
 const HotelMap = dynamic(() => import("@/components/hotels/hotel-map"), {
   ssr: false,
-  loading: () => <div className="h-full min-h-80 animate-pulse rounded-3xl bg-sand" />,
+  loading: () => (
+    <div className="h-full min-h-80 animate-pulse rounded-3xl bg-sand" />
+  ),
 });
 
 export default function HotelBrowse() {
@@ -48,7 +55,9 @@ export default function HotelBrowse() {
   ].join("|");
 
   const [hotels, setHotels] = useState<StayHotel[]>([]);
-  const [status, setStatus] = useState<"loading" | "ready" | "error">("loading");
+  const [status, setStatus] = useState<"loading" | "ready" | "error">(
+    "loading",
+  );
   const [message, setMessage] = useState("");
   const [priced, setPriced] = useState(false);
   const [attempt, setAttempt] = useState(0);
@@ -67,7 +76,9 @@ export default function HotelBrowse() {
         else next.set(key, value);
       }
       const query = next.toString();
-      router.replace(query ? `${pathname}?${query}` : pathname, { scroll: false });
+      router.replace(query ? `${pathname}?${query}` : pathname, {
+        scroll: false,
+      });
     },
     [pathname, router, searchParams],
   );
@@ -130,7 +141,17 @@ export default function HotelBrowse() {
     );
 
     return () => controller.abort();
-  }, [adults, ages, attempt, checkin, checkout, city, countryCode, rooms, searchKey]);
+  }, [
+    adults,
+    ages,
+    attempt,
+    checkin,
+    checkout,
+    city,
+    countryCode,
+    rooms,
+    searchKey,
+  ]);
 
   const visible = applyFilters(hotels, filters);
   const nights = nightsBetween(stay.checkin, stay.checkout);
@@ -140,11 +161,14 @@ export default function HotelBrowse() {
 
   useEffect(() => {
     if (pending || !focus) return;
-    document.getElementById(`stay-${focus}`)?.scrollIntoView({ block: "center" });
+    document
+      .getElementById(`stay-${focus}`)
+      ?.scrollIntoView({ block: "center" });
   }, [focus, pending]);
 
   const mapHotels: MapHotel[] = visible.flatMap((hotel) => {
-    if (!isCoordinate(hotel.latitude) || !isCoordinate(hotel.longitude)) return [];
+    if (!isCoordinate(hotel.latitude) || !isCoordinate(hotel.longitude))
+      return [];
     return [
       {
         id: hotel.id,
@@ -152,7 +176,9 @@ export default function HotelBrowse() {
         latitude: hotel.latitude,
         longitude: hotel.longitude,
         priceLabel:
-          hotel.price != null ? formatMoney(hotel.price, hotel.currency || "USD") : "Stay",
+          hotel.price != null
+            ? formatMoney(hotel.price, hotel.currency || "USD")
+            : "Stay",
       },
     ];
   });
@@ -190,14 +216,19 @@ export default function HotelBrowse() {
       </div>
 
       <div className="mx-auto flex max-w-[1440px] gap-4 px-4 py-4">
-        <section className="min-w-0 flex-1" aria-label={`Hotels in ${stay.city}`}>
+        <section
+          className="min-w-0 flex-1"
+          aria-label={`Hotels in ${stay.city}`}
+        >
           <div className="mb-4 flex items-end justify-between gap-3 px-1">
             <div>
               <h1 className="font-display text-4xl tracking-tight">
                 {stay.city}
-                {stay.country ? <span className="text-muted">, {stay.country}</span> : null}
+                {stay.country ? (
+                  <span className="text-neutral-500">, {stay.country}</span>
+                ) : null}
               </h1>
-              <p className="mt-1 text-sm text-muted" aria-live="polite">
+              <p className="mt-1 text-sm text-neutral-500" aria-live="polite">
                 {pending
                   ? "Looking up stays"
                   : `${visible.length} stay${visible.length === 1 ? "" : "s"}${priced ? "" : " listed"}`}
@@ -213,7 +244,10 @@ export default function HotelBrowse() {
           </div>
 
           {message ? (
-            <p className="mb-4 rounded-2xl bg-sand px-4 py-3 text-sm text-ink" role="status">
+            <p
+              className="mb-4 rounded-2xl bg-sand px-4 py-3 text-sm text-ink"
+              role="status"
+            >
               {message}
             </p>
           ) : null}
@@ -221,14 +255,19 @@ export default function HotelBrowse() {
           {pending ? (
             <div className="space-y-4" aria-hidden>
               {Array.from({ length: 4 }, (_, index) => (
-                <div key={index} className="h-44 animate-pulse rounded-3xl bg-white" />
+                <div
+                  key={index}
+                  className="h-44 animate-pulse rounded-3xl bg-white"
+                />
               ))}
             </div>
           ) : null}
 
           {!pending && status === "error" ? (
             <div className="rounded-3xl bg-white p-8 text-center ring-1 ring-ink/5">
-              <p className="font-display text-3xl">The search did not go through.</p>
+              <p className="font-display text-3xl">
+                The search did not go through.
+              </p>
               <button
                 type="button"
                 onClick={() => setAttempt((value) => value + 1)}
@@ -241,8 +280,10 @@ export default function HotelBrowse() {
 
           {!pending && status === "ready" && visible.length === 0 ? (
             <div className="rounded-3xl bg-white p-8 text-center ring-1 ring-ink/5">
-              <p className="font-display text-3xl">Nothing matches this search.</p>
-              <p className="mt-2 text-sm text-muted">
+              <p className="font-display text-3xl">
+                Nothing matches this search.
+              </p>
+              <p className="mt-2 text-sm text-neutral-500">
                 Clear a filter or try different dates for {stay.city}.
               </p>
             </div>
@@ -321,7 +362,11 @@ function applyFilters(
     if (minStars && (hotel.stars ?? 0) < minStars) return false;
     if (minScore && (scoreOutOfTen(hotel.rating) ?? 0) < minScore) return false;
     if (filters.refundable && hotel.refundable !== true) return false;
-    if (filters.maxPrice && Number.isFinite(max) && (hotel.price ?? Number.POSITIVE_INFINITY) > max) {
+    if (
+      filters.maxPrice &&
+      Number.isFinite(max) &&
+      (hotel.price ?? Number.POSITIVE_INFINITY) > max
+    ) {
       return false;
     }
     return true;
@@ -329,15 +374,22 @@ function applyFilters(
 
   return filtered.sort((a, b) => {
     if (filters.sort === "price-asc") {
-      return (a.price ?? Number.POSITIVE_INFINITY) - (b.price ?? Number.POSITIVE_INFINITY);
+      return (
+        (a.price ?? Number.POSITIVE_INFINITY) -
+        (b.price ?? Number.POSITIVE_INFINITY)
+      );
     }
     if (filters.sort === "price-desc") return (b.price ?? -1) - (a.price ?? -1);
     if (filters.sort === "rating") {
       return (scoreOutOfTen(b.rating) ?? 0) - (scoreOutOfTen(a.rating) ?? 0);
     }
-    const byScore = (scoreOutOfTen(b.rating) ?? 0) - (scoreOutOfTen(a.rating) ?? 0);
+    const byScore =
+      (scoreOutOfTen(b.rating) ?? 0) - (scoreOutOfTen(a.rating) ?? 0);
     if (byScore !== 0) return byScore;
-    return (a.price ?? Number.POSITIVE_INFINITY) - (b.price ?? Number.POSITIVE_INFINITY);
+    return (
+      (a.price ?? Number.POSITIVE_INFINITY) -
+      (b.price ?? Number.POSITIVE_INFINITY)
+    );
   });
 }
 

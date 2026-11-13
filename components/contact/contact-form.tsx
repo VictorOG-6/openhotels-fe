@@ -26,7 +26,10 @@ function MailtoContactForm() {
   }
 
   return (
-    <form onSubmit={submit} className="space-y-4 rounded-3xl bg-white p-6 ring-1 ring-ink/8">
+    <form
+      onSubmit={submit}
+      className="space-y-4 rounded-3xl bg-white p-6 ring-1 ring-ink/8"
+    >
       <label className="block text-sm font-medium">
         Name
         <input
@@ -49,10 +52,17 @@ function MailtoContactForm() {
       </label>
       <label className="block text-sm font-medium">
         Message
-        <textarea name="message" required minLength={8} rows={5} className={inputClassName} />
+        <textarea
+          name="message"
+          required
+          minLength={8}
+          rows={5}
+          className={inputClassName}
+        />
       </label>
-      <p className="text-sm text-muted">
-        Form delivery is not configured. Submitting opens your email app instead.
+      <p className="text-sm text-neutral-500">
+        Form delivery is not configured. Submitting opens your email app
+        instead.
       </p>
       <button
         type="submit"
@@ -100,7 +110,11 @@ function FormspreeContactForm() {
           disabled={state.submitting}
           className={inputClassName}
         />
-        <ValidationError errors={state.errors} field="name" className="mt-1 text-sm text-clay" />
+        <ValidationError
+          errors={state.errors}
+          field="name"
+          className="mt-1 text-sm text-clay"
+        />
       </label>
       <label className="block text-sm font-medium">
         Email
@@ -112,7 +126,11 @@ function FormspreeContactForm() {
           disabled={state.submitting}
           className={inputClassName}
         />
-        <ValidationError errors={state.errors} field="email" className="mt-1 text-sm text-clay" />
+        <ValidationError
+          errors={state.errors}
+          field="email"
+          className="mt-1 text-sm text-clay"
+        />
       </label>
       <label className="block text-sm font-medium">
         Message
@@ -124,7 +142,11 @@ function FormspreeContactForm() {
           disabled={state.submitting}
           className={inputClassName}
         />
-        <ValidationError errors={state.errors} field="message" className="mt-1 text-sm text-clay" />
+        <ValidationError
+          errors={state.errors}
+          field="message"
+          className="mt-1 text-sm text-clay"
+        />
       </label>
       <ValidationError errors={state.errors} className="text-sm text-clay" />
       {state.succeeded ? (

@@ -11,17 +11,20 @@ const FACILITIES = [
 
 const STORIES = [
   {
-    quote: "We compared three rooms on the map, prebooked the refundable one, and the price on the confirmation matched.",
+    quote:
+      "We compared three rooms on the map, prebooked the refundable one, and the price on the confirmation matched.",
     name: "Amaka Obi",
     place: "Lagos to Lisbon",
   },
   {
-    quote: "The dates and guest count stayed with me from the homepage to the room list. I did not have to search twice.",
+    quote:
+      "The dates and guest count stayed with me from the homepage to the room list. I did not have to search twice.",
     name: "Jonah Ellis",
     place: "Two nights in Rome",
   },
   {
-    quote: "I wanted a pool and a desk that answered the phone. Both were on the hotel page before I paid.",
+    quote:
+      "I wanted a pool and a desk that answered the phone. Both were on the hotel page before I paid.",
     name: "Leila Haddad",
     place: "A week in Dubai",
   },
@@ -31,7 +34,9 @@ export function Facilities() {
   return (
     <section id="facilities" className="bg-sand">
       <div className="mx-auto w-full max-w-6xl px-5 py-16 md:px-8 md:py-24">
-        <p className="text-xs font-semibold uppercase tracking-[0.22em] text-clay">Facilities</p>
+        <p className="text-xs font-semibold uppercase tracking-[0.22em] text-clay">
+          Facilities
+        </p>
         <h2 className="mt-2 max-w-2xl font-display text-4xl tracking-tight md:text-5xl">
           What a good hotel should already have.
         </h2>
@@ -40,7 +45,7 @@ export function Facilities() {
             <li key={title} className="rounded-3xl bg-paper p-5">
               <FacilityMark />
               <h3 className="mt-4 font-display text-2xl">{title}</h3>
-              <p className="mt-2 text-sm leading-6 text-muted">{copy}</p>
+              <p className="mt-2 text-sm leading-6 text-neutral-500">{copy}</p>
             </li>
           ))}
         </ul>
@@ -51,17 +56,29 @@ export function Facilities() {
 
 export function Testimonials() {
   return (
-    <section id="stories" className="mx-auto w-full max-w-6xl px-5 py-16 md:px-8 md:py-24">
-      <p className="text-xs font-semibold uppercase tracking-[0.22em] text-clay">Guest notes</p>
-      <h2 className="mt-2 font-display text-4xl tracking-tight md:text-5xl">Stays people would book again.</h2>
+    <section
+      id="stories"
+      className="mx-auto w-full max-w-6xl px-5 py-16 md:px-8 md:py-24"
+    >
+      <p className="text-xs font-semibold uppercase tracking-[0.22em] text-clay">
+        Guest notes
+      </p>
+      <h2 className="mt-2 font-display text-4xl tracking-tight md:text-5xl">
+        Stays people would book again.
+      </h2>
       <ul className="mt-10 grid gap-4 md:grid-cols-3">
         {STORIES.map((story) => (
-          <li key={story.name} className="flex flex-col rounded-3xl bg-white p-6 ring-1 ring-ink/8">
+          <li
+            key={story.name}
+            className="flex flex-col rounded-3xl bg-white p-6 ring-1 ring-ink/8"
+          >
             <p className="font-display text-5xl leading-none text-clay">“</p>
-            <blockquote className="mt-3 flex-1 text-lg leading-7">{story.quote}</blockquote>
+            <blockquote className="mt-3 flex-1 text-lg leading-7">
+              {story.quote}
+            </blockquote>
             <footer className="mt-6 text-sm">
               <p className="font-semibold">{story.name}</p>
-              <p className="text-muted">{story.place}</p>
+              <p className="text-neutral-500">{story.place}</p>
             </footer>
           </li>
         ))}
@@ -74,14 +91,19 @@ export function HowItWorks() {
   const steps = [
     ["Search", "Set a city, the nights, and who is coming."],
     ["Compare", "Filter the list and read the same hotels on the map."],
-    ["Choose", "Open a hotel and pick a room rate with its cancellation terms."],
+    [
+      "Choose",
+      "Open a hotel and pick a room rate with its cancellation terms.",
+    ],
     ["Confirm", "Prebook the offer, then send the guest details to book it."],
   ];
 
   return (
     <section id="how-it-works" className="bg-ink text-sand">
       <div className="mx-auto w-full max-w-6xl px-5 py-16 md:px-8 md:py-24">
-        <p className="text-xs font-semibold uppercase tracking-[0.22em] text-gold">How it works</p>
+        <p className="text-xs font-semibold uppercase tracking-[0.22em] text-gold">
+          How it works
+        </p>
         <h2 className="mt-2 max-w-xl font-display text-4xl tracking-tight text-white md:text-5xl">
           From a city name to a confirmed room.
         </h2>
@@ -90,7 +112,7 @@ export function HowItWorks() {
             <li key={title}>
               <p className="font-display text-3xl text-gold">{`0${index + 1}`}</p>
               <h3 className="mt-3 text-xl text-white">{title}</h3>
-              <p className="mt-2 text-sm leading-6 text-sand/75">{copy}</p>
+              <p className="mt-2 text-sm leading-6 text-neutral-500">{copy}</p>
             </li>
           ))}
         </ol>
@@ -111,7 +133,9 @@ export function Editorial() {
         />
         <div className="absolute inset-0 bg-ink/45" />
         <div className="relative flex min-h-[420px] flex-col justify-end p-8 text-white md:p-12">
-          <p className="text-xs font-semibold uppercase tracking-[0.22em] text-white/75">The stay</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.22em] text-white/75">
+            The stay
+          </p>
           <h2 className="mt-3 max-w-lg font-display text-4xl leading-tight md:text-6xl">
             A room is easier to trust when the map and the price agree.
           </h2>
@@ -123,9 +147,22 @@ export function Editorial() {
 
 function FacilityMark() {
   return (
-    <span className="grid h-10 w-10 place-items-center rounded-full bg-pine text-sand" aria-hidden>
-      <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.6">
-        <path d="M4 18V8m0 10h16M8 18V6h8v12" strokeLinecap="round" strokeLinejoin="round" />
+    <span
+      className="grid h-10 w-10 place-items-center rounded-full bg-pine text-sand"
+      aria-hidden
+    >
+      <svg
+        viewBox="0 0 24 24"
+        className="h-5 w-5"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.6"
+      >
+        <path
+          d="M4 18V8m0 10h16M8 18V6h8v12"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
       </svg>
     </span>
   );

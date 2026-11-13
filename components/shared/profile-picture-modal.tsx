@@ -113,16 +113,16 @@ const ProfilePictureModal = ({
     <section className="fixed inset-0 z-9999 bg-[#32475C80] flex items-center justify-center px-4">
       <div className="w-full max-w-204 bg-white p-8 md:p-12 rounded-lg shadow-md animate-in fade-in zoom-in-95 duration-200">
         <div className="flex items-center justify-between mb-6">
-          <div className="flex flex-col gap-2 text-gray-600">
-            <h1 className="text-base font-semibold">Add profile picture</h1>
-            <p className="text-sm text-gray-500">
+          <div className="flex flex-col gap-2 text-neutral-500">
+            <h1 className="text-base font-semibold text-ink">Add profile picture</h1>
+            <p className="text-sm text-neutral-500">
               Drop an image here or choose one from your device.
             </p>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="cursor-pointer transition-all duration-300 text-gray-600 hover:text-red-500"
+            className="cursor-pointer transition-all duration-300 text-neutral-500 hover:text-red-500"
             aria-label="Close profile picture modal"
           >
             <X size={20} />
@@ -205,14 +205,14 @@ const ProfilePictureModal = ({
               />
             ) : null}
 
-            <h2 className="text-lg font-semibold text-gray-700">
+            <h2 className="text-lg font-semibold text-ink">
               {isUploading
                 ? "Uploading image..."
                 : isDragging
                   ? "Release to upload"
                   : "Drag and drop your image here"}
             </h2>
-            <p className="mt-2 max-w-sm text-sm text-gray-500">
+            <p className="mt-2 max-w-sm text-sm text-neutral-500">
               JPG, PNG, GIF, or WebP up to {MAX_FILE_SIZE_MB}MB. Click this area
               to browse manually.
             </p>

@@ -114,11 +114,11 @@ export default function Navbar() {
                   </div>
                   <div className="flex flex-col items-center gap-0.5 mt-2">
                     <h2>Hi! {user.name.split(" ")[0]}</h2>
-                    <p className="text-xs text-gray-500">{user.email}</p>
+                    <p className="text-xs text-neutral-500">{user.email}</p>
                   </div>
                   {/* <Link
                     href="/profile"
-                    className="rounded-xl bg-white flex items-center justify-center px-2.5 py-1.5 mt-3 w-45 text-gray-600 duration-300 transition-all hover:bg-neutral-100 cursor-pointer"
+                    className="rounded-xl bg-white flex items-center justify-center px-2.5 py-1.5 mt-3 w-45 text-neutral-500 duration-300 transition-all hover:bg-neutral-100 cursor-pointer"
                   >
                     <div className="flex items-center gap-2 ">My Profile</div>
                   </Link> */}
@@ -130,7 +130,7 @@ export default function Navbar() {
                     {isLoading ? "Signing out..." : "Sign Out"}
                   </p>
                   {/* <button
-                    className="rounded-xl bg-white flex items-center justify-center px-2.5 py-1.5 my-3 w-45 text-gray-600 duration-300 transition-all hover:text-red-500 cursor-pointer"
+                    className="rounded-xl bg-white flex items-center justify-center px-2.5 py-1.5 my-3 w-45 text-neutral-500 duration-300 transition-all hover:text-red-500 cursor-pointer"
                     onClick={() => logout()}
                   >
                     <div className="flex items-center gap-2 ">
@@ -141,14 +141,14 @@ export default function Navbar() {
                   <div className="flex items-center gap-1.5 text-black text-[10px]">
                     <Link
                       href="/privacy-policy"
-                      className="cursor-pointer transition-all duration-300 hover:text-blue-700"
+                      className="cursor-pointer underline underline-offset-2 transition-all duration-300 hover:text-blue-700"
                     >
                       Privacy Policy
                     </Link>
                     <span className="bg-black w-0.5 h-0.5 rounded-full" />
                     <Link
                       href="/terms-of-service"
-                      className="cursor-pointer transition-all duration-300 hover:text-blue-700"
+                      className="cursor-pointer underline underline-offset-2 transition-all duration-300 hover:text-blue-700"
                     >
                       Terms of Service
                     </Link>
@@ -202,9 +202,7 @@ export default function Navbar() {
                 onClick={() => setOpen(false)}
                 className={cn(
                   "block rounded-2xl px-3 py-3 text-base font-medium",
-                  active
-                    ? "bg-sand text-ink"
-                    : "text-ink hover:bg-sand",
+                  active ? "bg-sand text-ink" : "text-ink hover:bg-sand",
                 )}
                 aria-current={active ? "page" : undefined}
               >
@@ -226,7 +224,9 @@ export default function Navbar() {
                     <p className="truncate font-medium text-ink">
                       {user.name.split(" ")[0]}
                     </p>
-                    <p className="truncate text-xs text-muted">{user.email}</p>
+                    <p className="truncate text-xs text-neutral-500">
+                      {user.email}
+                    </p>
                   </div>
                 </div>
                 <button
