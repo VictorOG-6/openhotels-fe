@@ -1,3 +1,4 @@
+import { API_URL } from "@/lib/constants";
 import { asRecord } from "@/lib/hotels/parse";
 
 const CURRENCY = "USD";
@@ -150,7 +151,7 @@ function isoDay(date: Date) {
 }
 
 async function request(path: string, init: RequestInit = {}) {
-  const base = process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, "");
+  const base = API_URL;
   if (!base) {
     throw new HotelApiError(
       "Live hotel rates need NEXT_PUBLIC_API_URL in the environment.",

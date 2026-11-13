@@ -1,4 +1,5 @@
 import { jwtDecode } from "jwt-decode";
+import { API_URL } from "@/lib/constants";
 
 export type AssistantContext = {
   apiBaseUrl: string;
@@ -68,7 +69,7 @@ function browserOrigin() {
 }
 
 function publicApiBase() {
-  const configured = process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, "") ?? "";
+  const configured = API_URL;
   const local = /localhost|127\.0\.0\.1/.test(configured);
   if (configured.startsWith("https://") && !local) return configured;
   return PUBLIC_API;

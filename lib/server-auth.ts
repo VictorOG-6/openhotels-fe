@@ -1,6 +1,7 @@
 import { jwtDecode } from "jwt-decode";
 import type { NextResponse } from "next/server";
 import type { UserRole } from "@/types";
+import { API_URL } from "@/lib/constants";
 
 interface DecodedToken {
   exp: number;
@@ -127,7 +128,9 @@ export interface AuthSessionResult {
 }
 
 function getApiUrl(): string | undefined {
-  return process.env.NEXT_PUBLIC_API_URL ?? process.env.API_URL;
+  if (API_URL) return API_URL;
+  const fallback = process.env.API_URL?.replace(/\/$/, "");
+  return fallback || undefined;
 }
 
 function getCookieMaxAge(token: string): number {
