@@ -175,7 +175,7 @@ function SignInForm() {
             )}
           </button>
         </form>
-        <p className="text-center text-sm text-muted">
+        <p className="text-center text-sm text-neutral-500">
           New here?{" "}
           <Link
             href="/sign-up"

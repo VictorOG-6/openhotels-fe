@@ -314,7 +314,7 @@ function SignUpForm() {
           </button>
         </form>
 
-        <p className="text-center text-sm text-muted">
+        <p className="text-center text-sm text-neutral-500">
           Already have an account?{" "}
           <Link
             href="/sign-in"
