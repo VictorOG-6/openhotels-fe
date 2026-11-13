@@ -1,8 +1,11 @@
 import Link from "next/link";
 
 import { LOCATIONS } from "@/lib/hotels/locations";
+import { getCopyrightYear } from "@/lib/copyright-year";
 
-export default function Footer() {
+export default async function Footer() {
+  const year = await getCopyrightYear();
+
   return (
     <footer className="border-t border-line bg-pine text-sand">
       <div className="mx-auto grid max-w-6xl gap-10 px-5 py-14 md:grid-cols-[1.4fr_1fr_1fr] md:px-8">
@@ -38,7 +41,7 @@ export default function Footer() {
       </div>
       <div className="border-t border-white/10">
         <div className="mx-auto flex max-w-6xl flex-col gap-3 px-5 py-5 text-xs text-sand/70 md:flex-row md:items-center md:justify-between md:px-8">
-          <p>© {new Date().getFullYear()} Open Hotels. All rights reserved.</p>
+          <p>© {year} Open Hotels. All rights reserved.</p>
           <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
             <Link className="hover:text-white" href="/terms-of-service">
               Terms of Service
