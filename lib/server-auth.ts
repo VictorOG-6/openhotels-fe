@@ -2,6 +2,7 @@ import { jwtDecode } from "jwt-decode";
 import type { NextResponse } from "next/server";
 import type { UserRole } from "@/types";
 import { API_URL, buildApiUrl } from "@/lib/constants";
+import { parseUserFromApi } from "@/lib/user-response";
 
 interface DecodedToken {
   exp: number;
@@ -186,7 +187,8 @@ async function fetchUser(
 
     if (!response.ok) return null;
 
-    return response.json();
+    const body = await response.json();
+    return parseUserFromApi(body);
   } catch {
     return null;
   }

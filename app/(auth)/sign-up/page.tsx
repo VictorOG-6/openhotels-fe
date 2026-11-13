@@ -1,6 +1,6 @@
 "use client";
 
-import { persistAuthSession } from "@/lib/auth-session";
+import { completeAuthFromApiResponse } from "@/lib/auth-session";
 import { buildApiUrl } from "@/lib/constants";
 import processError from "@/lib/error";
 import { getFirstFieldErrorMessage } from "@/lib/form";
@@ -54,18 +54,6 @@ const signUpSchema = z
   });
 
 type SignUpFormField = z.infer<typeof signUpSchema>;
-
-interface SignUpResponse {
-  data: {
-    access_token: string;
-    refresh_token: string;
-    user: {
-      name: string;
-      email: string;
-      id: string;
-    };
-  };
-}
 
 function SignUpForm() {
   const router = useRouter();
@@ -127,13 +115,9 @@ function SignUpForm() {
 
     try {
       const { confirmPassword: _, ...payload } = values;
-      const { data } = await $http.post<SignUpResponse>("/user", payload);
+      const { data } = await $http.post("/user", payload);
 
-      await persistAuthSession({
-        access_token: data.data.access_token,
-        refresh_token: data.data.refresh_token,
-        user: data.data.user,
-      });
+      await completeAuthFromApiResponse(data);
 
       const redirectUri = searchParams.get("redirectUri");
       router.push(redirectUri || "/");
@@ -152,7 +136,12 @@ function SignUpForm() {
 
   const signInWithGoogle = () => {
     setIsGoogleAuthLoading(true);
-    window.location.href = buildApiUrl("/auth/google");
+    const redirectUri = searchParams.get("redirectUri");
+    const next =
+      redirectUri && redirectUri.startsWith("/")
+        ? `?redirect_uri=${encodeURIComponent(redirectUri)}`
+        : "";
+    window.location.href = `${buildApiUrl("/auth/google")}${next}`;
   };
 
   const handleFormError = (errors: FieldErrors<SignUpFormField>) => {

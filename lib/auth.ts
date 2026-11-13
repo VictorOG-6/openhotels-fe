@@ -18,10 +18,10 @@ export interface AuthUser {
 }
 
 export interface AuthPayload {
-  user: AuthUser;
+  user?: AuthUser;
   access_token: string;
   refresh_token: string;
-  token_type: string;
+  token_type?: string;
 }
 
 type AuthResponse = AuthPayload | { data?: AuthPayload };

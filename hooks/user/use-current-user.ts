@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { jwtDecode } from "jwt-decode";
 import { $http, addAccessTokenToHttpInstance } from "@/lib/http";
 import { userKeys } from "@/lib/react-query/query-keys";
+import { parseUserFromApi, unwrapUserRecord } from "@/lib/user-response";
 import { User } from "@/types";
 
 const isTokenValid = (token: string) => {
@@ -43,13 +44,16 @@ const fetchCurrentUser = async (): Promise<User | null> => {
   const accessToken = await getAccessToken();
   if (!accessToken) return null;
 
-  const { data } = await $http.get<User>("/user", {
+  const { data } = await $http.get("/user", {
     headers: {
       Authorization: `Bearer ${accessToken}`,
     },
   });
 
-  return data;
+  if (!parseUserFromApi(data)) return null;
+
+  const record = unwrapUserRecord(data);
+  return record ? (record as User) : null;
 };
 
 export function useCurrentUser() {

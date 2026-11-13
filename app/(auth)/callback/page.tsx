@@ -2,7 +2,7 @@
 
 import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { persistAuthSession } from "@/lib/auth-session";
+import { completeAuthFromApiResponse } from "@/lib/auth-session";
 
 function AuthCallbackContent() {
   const router = useRouter();
@@ -25,13 +25,9 @@ function AuthCallbackContent() {
 
         setStatus("Creating secure session...");
 
-        const email = searchParams.get("email")?.trim() || "";
-        const name = searchParams.get("name")?.trim() || email.split("@")[0] || "Guest";
-
-        await persistAuthSession({
+        await completeAuthFromApiResponse({
           access_token: accessToken,
           refresh_token: refreshToken,
-          user: { name, email },
         });
 
         setStatus("Authentication successful! Redirecting...");

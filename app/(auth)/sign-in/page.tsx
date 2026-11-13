@@ -1,6 +1,6 @@
 "use client";
 
-import { persistAuthSession } from "@/lib/auth-session";
+import { completeAuthFromApiResponse } from "@/lib/auth-session";
 import { buildApiUrl } from "@/lib/constants";
 import processError from "@/lib/error";
 import { getFirstFieldErrorMessage } from "@/lib/form";
@@ -32,18 +32,6 @@ const signInSchema = z.object({
 
 type SignInFormField = z.infer<typeof signInSchema>;
 
-interface SignInResponse {
-  data: {
-    access_token: string;
-    refresh_token: string;
-    user: {
-      name: string;
-      email: string;
-      id: string;
-    };
-  };
-}
-
 function SignInForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -66,13 +54,9 @@ function SignInForm() {
     setIsLoading(true);
 
     try {
-      const { data } = await $http.post<SignInResponse>("/auth/login", values);
+      const { data } = await $http.post("/auth/login", values);
 
-      await persistAuthSession({
-        access_token: data.data.access_token,
-        refresh_token: data.data.refresh_token,
-        user: data.data.user,
-      });
+      await completeAuthFromApiResponse(data);
 
       const redirectUri = searchParams.get("redirectUri");
       router.push(redirectUri || "/");
