@@ -1,4 +1,11 @@
-import { readAssistantContext, type AssistantContext } from "@/lib/assistant/context";
+import {
+  buildAssistantContext,
+  clipForEmbed,
+  readAssistantContext,
+  type AssistantContext,
+} from "@/lib/assistant/context";
+import { getClientAccessToken } from "@/lib/client-session";
+import type { User } from "@/types";
 
 export const ASSISTANT_SCRIPT = "https://agentplace.io/admin/embed/v1.js";
 export const ASSISTANT_URL = "https://szfgvjidxrop.run.agentplace.io/";
@@ -24,7 +31,7 @@ let chain: Promise<void> = Promise.resolve();
 let assistant: Promise<Assistant> | null = null;
 
 export function publishAssistantContext(context: AssistantContext = readAssistantContext()) {
-  const snapshot = context;
+  const snapshot = normalizeContextForEmbed(context);
   chain = chain
     .catch(() => undefined)
     .then(async () => {
@@ -72,19 +79,32 @@ function waitForScript() {
   });
 }
 
-function applyContext(instance: Assistant, context: AssistantContext) {
-  try {
-    instance.setContext(context);
-  } catch {
-    try {
-      instance.setContext({
-        ...context,
-        isSignedIn: false,
-        accessToken: "",
-        userEmail: "",
-      });
-    } catch {
-      // The embed rejects context that is too large or the wrong shape.
-    }
-  }
+function normalizeContextForEmbed(
+  context: AssistantContext,
+): Record<string, string | number | boolean | null> {
+  return {
+    apiBaseUrl: clipForEmbed(context.apiBaseUrl),
+    bookingUrl: clipForEmbed(context.bookingUrl),
+    loginUrl: clipForEmbed(context.loginUrl),
+    signUpUrl: clipForEmbed(context.signUpUrl),
+    isSignedIn: context.isSignedIn,
+    accessToken: context.isSignedIn ? clipForEmbed(context.accessToken) : "",
+    userEmail: context.isSignedIn ? clipForEmbed(context.userEmail) : "",
+    defaultCurrency: clipForEmbed(context.defaultCurrency),
+    defaultGuestNationality: clipForEmbed(context.defaultGuestNationality),
+  };
+}
+
+function applyContext(
+  instance: Assistant,
+  context: Record<string, string | number | boolean | null>,
+) {
+  instance.setContext(context);
+}
+
+/** Pushes the latest auth-aware context into the embed (user + refreshed token). */
+export async function refreshAssistantAuthContext(user?: User | null) {
+  const accessToken = await getClientAccessToken();
+  const snapshot = buildAssistantContext({ user, accessToken });
+  return publishAssistantContext(snapshot);
 }

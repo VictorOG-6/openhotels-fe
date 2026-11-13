@@ -1,5 +1,6 @@
 import { useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import { publishAssistantContext } from "@/lib/assistant/embed";
 import { $http, removeAccessTokenFromHttpInstance } from "@/lib/http";
 
 export const useLogout = () => {
@@ -11,6 +12,7 @@ export const useLogout = () => {
     sessionStorage.removeItem("refresh_token");
     sessionStorage.removeItem("user_display");
     removeAccessTokenFromHttpInstance();
+    void publishAssistantContext();
   };
 
   const logout = useCallback(async () => {

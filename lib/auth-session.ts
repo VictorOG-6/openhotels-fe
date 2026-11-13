@@ -4,6 +4,7 @@ import {
   validateToken,
   type AuthResponse,
 } from "@/lib/auth";
+import { refreshAssistantAuthContext } from "@/lib/assistant/embed";
 import { addAccessTokenToHttpInstance, $http } from "@/lib/http";
 import { parseUserFromApi } from "@/lib/user-response";
 import type { UserRole } from "@/types";
@@ -41,6 +42,8 @@ export async function persistAuthSession(
   );
 
   addAccessTokenToHttpInstance(tokens.access_token);
+
+  void refreshAssistantAuthContext();
 }
 
 /**
