@@ -37,7 +37,18 @@ export default function Footer() {
         </div>
       </div>
       <div className="border-t border-white/10">
-        <p className="mx-auto max-w-6xl px-5 py-5 text-xs text-sand/70 md:px-8">
+        <div className="mx-auto flex max-w-6xl flex-col gap-3 px-5 py-5 text-xs text-sand/70 md:flex-row md:items-center md:justify-between md:px-8">
+          <p>© {new Date().getFullYear()} Open Hotels. All rights reserved.</p>
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+            <Link className="hover:text-white" href="/terms-of-service">
+              Terms of Service
+            </Link>
+            <Link className="hover:text-white" href="/privacy-policy">
+              Privacy Policy
+            </Link>
+          </div>
+        </div>
+        <p className="mx-auto max-w-6xl border-t border-white/10 px-5 py-4 text-xs text-sand/60 md:px-8">
           Rates and availability come from the hotel partner at the moment you search.
         </p>
       </div>
