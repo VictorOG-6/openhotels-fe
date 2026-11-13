@@ -24,7 +24,7 @@ export interface AuthPayload {
   token_type?: string;
 }
 
-type AuthResponse = AuthPayload | { data?: AuthPayload };
+export type AuthResponse = AuthPayload | { data?: AuthPayload };
 
 export const getAuthPayload = (response: AuthResponse): AuthPayload => {
   const payload =

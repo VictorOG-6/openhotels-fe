@@ -14,6 +14,13 @@ export interface User {
 
 export interface UserWithRelations extends User {}
 
+/** Body for `POST /user` — profile image is set later, not at signup. */
+export interface CreateUserBody {
+  name: string;
+  email: string;
+  password: string;
+}
+
 export interface UserFetchProps {
   page_size?: number;
   page?: number;
