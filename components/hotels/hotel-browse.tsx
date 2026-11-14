@@ -19,6 +19,7 @@ import {
   nightsBetween,
   scoreOutOfTen,
 } from "@/lib/hotels/format";
+import { isFilteredEmpty, isInventoryEmpty } from "@/lib/hotels/outcome";
 import { hotelSearchNeedsCountryCode } from "@/lib/hotels/query";
 import { buildHotelHref, datesAreValid, readStay } from "@/lib/hotels/query";
 import { listCityHotels, searchStays } from "@/lib/hotels/search";
@@ -60,9 +61,9 @@ export default function HotelBrowse() {
   ].join("|");
 
   const [hotels, setHotels] = useState<StayHotel[]>([]);
-  const [status, setStatus] = useState<"loading" | "ready" | "error">(
-    "loading",
-  );
+  const [status, setStatus] = useState<
+    "loading" | "ready" | "error" | "blocked"
+  >("loading");
   const [message, setMessage] = useState("");
   const [priced, setPriced] = useState(false);
   const [attempt, setAttempt] = useState(0);
@@ -106,7 +107,7 @@ export default function HotelBrowse() {
       setMessage(
         "Add a country with the city to search hotels, e.g. Abuja, Nigeria.",
       );
-      setStatus("error");
+      setStatus("blocked");
       setLoadedKey(searchKey);
       return;
     }
@@ -170,6 +171,8 @@ export default function HotelBrowse() {
   ]);
 
   const visible = applyFilters(hotels, filters);
+  const inventoryEmpty = isInventoryEmpty(hotels);
+  const filteredEmpty = isFilteredEmpty(hotels, visible);
   const nights = nightsBetween(stay.checkin, stay.checkout);
 
   const pending = loadedKey !== searchKey;
@@ -280,11 +283,24 @@ export default function HotelBrowse() {
             </div>
           ) : null}
 
-          {!pending && status === "error" ? (
+          {!pending && status === "blocked" ? (
             <div className="rounded-3xl bg-white p-8 text-center ring-1 ring-ink/5">
+              <p className="font-display text-3xl">Add a country to search</p>
+              <p className="mt-2 text-sm text-neutral-500">{message}</p>
+            </div>
+          ) : null}
+
+          {!pending && status === "error" ? (
+            <div
+              className="rounded-3xl bg-white p-8 text-center ring-1 ring-ink/5"
+              role="alert"
+            >
               <p className="font-display text-3xl">
                 The search did not go through.
               </p>
+              {message ? (
+                <p className="mt-2 text-sm text-neutral-500">{message}</p>
+              ) : null}
               <button
                 type="button"
                 onClick={() => setAttempt((value) => value + 1)}
@@ -295,7 +311,20 @@ export default function HotelBrowse() {
             </div>
           ) : null}
 
-          {!pending && status === "ready" && visible.length === 0 ? (
+          {!pending && status === "ready" && inventoryEmpty ? (
+            <div className="rounded-3xl bg-white p-8 text-center ring-1 ring-ink/5">
+              <p className="font-display text-3xl">
+                No hotels in this location
+              </p>
+              <p className="mt-2 text-sm text-neutral-500">
+                We did not find hotels for {stay.city}
+                {stay.country ? `, ${stay.country}` : ""}. Try another city,
+                country, or travel dates.
+              </p>
+            </div>
+          ) : null}
+
+          {!pending && status === "ready" && filteredEmpty ? (
             <div className="rounded-3xl bg-white p-8 text-center ring-1 ring-ink/5">
               <p className="font-display text-3xl">
                 Nothing matches this search.

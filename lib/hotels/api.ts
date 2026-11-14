@@ -18,6 +18,11 @@ export function isAbortError(error: unknown) {
   return error instanceof DOMException && error.name === "AbortError";
 }
 
+/** Some hotel reads return 404 when nothing exists — treat as an empty list, not a failure. */
+export function isEmptyNotFoundError(error: unknown) {
+  return error instanceof HotelApiError && error.status === 404;
+}
+
 export function errorMessage(error: unknown) {
   if (isAbortError(error)) return "Search cancelled.";
   if (error instanceof HotelApiError) return error.message;

@@ -8,7 +8,11 @@ import { useEffect, useState } from "react";
 import PrebookRateButton from "@/components/hotels/prebook-rate-button";
 import { Photo, Stars } from "@/components/hotels/photo";
 import SearchBar from "@/components/search/search-bar";
-import { errorMessage, isAbortError } from "@/lib/hotels/api";
+import {
+  errorMessage,
+  isAbortError,
+  isEmptyNotFoundError,
+} from "@/lib/hotels/api";
 import {
   formatMoney,
   formatStayDate,
@@ -53,9 +57,9 @@ function HotelDetailBody({ hotelId, slug }: { hotelId: string; slug: string }) {
 
   const [hotel, setHotel] = useState<HotelDetail | null>(null);
   const [hotelError, setHotelError] = useState("");
-  const [hotelStatus, setHotelStatus] = useState<"loading" | "ready" | "error">(
-    "loading",
-  );
+  const [hotelStatus, setHotelStatus] = useState<
+    "loading" | "ready" | "error" | "notFound"
+  >("loading");
   const [offers, setOffers] = useState<RoomOffer[]>([]);
   const [offerStatus, setOfferStatus] = useState<
     "idle" | "loading" | "ready" | "error"
@@ -74,6 +78,11 @@ function HotelDetailBody({ hotelId, slug }: { hotelId: string; slug: string }) {
       (error: unknown) => {
         if (isAbortError(error)) return;
         setHotel(null);
+        if (isEmptyNotFoundError(error)) {
+          setHotelError("");
+          setHotelStatus("notFound");
+          return;
+        }
         setHotelError(errorMessage(error));
         setHotelStatus("error");
       },
@@ -150,12 +159,29 @@ function HotelDetailBody({ hotelId, slug }: { hotelId: string; slug: string }) {
         <div className="mt-6 h-80 animate-pulse rounded-3xl bg-sand" />
       ) : null}
 
-      {hotelStatus === "error" ? (
+      {hotelStatus === "notFound" ? (
         <div className="mt-8 rounded-3xl bg-white p-8 ring-1 ring-ink/5">
-          <h1 className="font-display text-4xl">
-            This hotel could not be opened.
-          </h1>
-          <p className="mt-3 text-sm text-neutral-500">{hotelError}</p>
+          <h1 className="font-display text-4xl">Hotel not found</h1>
+          <p className="mt-3 text-sm text-neutral-500">
+            Nothing came back for this hotel id. Return to the city list and pick
+            another stay.
+          </p>
+          <Link
+            href={buildBrowseHref(stay)}
+            className="mt-4 inline-flex text-sm font-semibold text-clay"
+          >
+            Back to {stay.city}
+          </Link>
+        </div>
+      ) : null}
+
+      {hotelStatus === "error" ? (
+        <div className="mt-8 rounded-3xl bg-white p-8 ring-1 ring-ink/5" role="alert">
+          <h1 className="font-display text-4xl">Could not load this hotel</h1>
+          <p className="mt-3 text-sm text-neutral-500">
+            {hotelError ||
+              "Something went wrong while talking to the hotel service."}
+          </p>
         </div>
       ) : null}
 
@@ -255,13 +281,19 @@ function HotelDetailBody({ hotelId, slug }: { hotelId: string; slug: string }) {
                   />
                 </div>
 
-                {!offersPending && offerError ? (
-                  <p
-                    className="mt-4 rounded-2xl bg-sand px-4 py-3 text-sm"
+                {!offersPending && offerStatus === "error" ? (
+                  <div
+                    className="mt-4 rounded-3xl bg-white p-6 ring-1 ring-ink/5"
                     role="alert"
                   >
-                    {offerError}
-                  </p>
+                    <p className="font-display text-2xl">
+                      Could not load room rates
+                    </p>
+                    <p className="mt-2 text-sm text-neutral-500">
+                      {offerError ||
+                        "Something went wrong while talking to the hotel service."}
+                    </p>
+                  </div>
                 ) : null}
 
                 {offersPending ? (
@@ -274,9 +306,10 @@ function HotelDetailBody({ hotelId, slug }: { hotelId: string; slug: string }) {
                 {!offersPending &&
                 offerStatus === "ready" &&
                 offers.length === 0 ? (
-                  <p className="mt-4 rounded-3xl bg-white p-6 text-sm ring-1 ring-ink/5">
-                    No rooms are available for these dates. Try a different
-                    stay.
+                  <p className="mt-4 rounded-3xl bg-white p-6 text-sm text-neutral-500 ring-1 ring-ink/5">
+                    No rooms are available for these dates. The hotel responded,
+                    but returned no bookable rates — try different dates or
+                    guests.
                   </p>
                 ) : null}
 

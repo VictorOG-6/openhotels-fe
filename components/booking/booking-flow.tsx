@@ -65,7 +65,7 @@ function Checkout({
 
   const [prebook, setPrebook] = useState<PrebookResult | null>(null);
   const [phase, setPhase] = useState<
-    "loading" | "ready" | "error" | "booked" | "auth"
+    "loading" | "ready" | "error" | "booked" | "auth" | "unavailable"
   >("loading");
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -121,7 +121,11 @@ function Checkout({
     fetchPrebook(offerId, controller.signal)
       .then((payload) => {
         const result = readPrebook(payload);
-        if (!result) throw new Error("The rate did not return a prebook id.");
+        if (!result) {
+          setPhase("unavailable");
+          setError("");
+          return;
+        }
         rememberPrebook({
           prebookId: result.prebookId,
           hotelName: result.hotelName || quotedHotel,
@@ -326,6 +330,22 @@ function Checkout({
           </div>
         ) : null}
 
+        {phase === "unavailable" ? (
+          <div className="mt-8 rounded-3xl bg-white p-6 ring-1 ring-ink/8">
+            <p className="font-display text-3xl">This rate is not available</p>
+            <p className="mt-2 text-sm text-neutral-500">
+              The service responded, but this offer cannot be held anymore. Pick
+              another room or search again.
+            </p>
+            <Link
+              href={backHref}
+              className="mt-4 inline-flex text-sm font-semibold text-clay"
+            >
+              Choose another room
+            </Link>
+          </div>
+        ) : null}
+
         {phase === "error" ? (
           <div
             className="mt-8 rounded-3xl bg-white p-6 ring-1 ring-ink/8"
@@ -334,9 +354,12 @@ function Checkout({
             <p className="font-display text-3xl">
               {existingPrebookId
                 ? "This pre-booking could not be opened."
-                : "This rate could not be prebooked."}
+                : "Prebook did not go through"}
             </p>
-            <p className="mt-2 text-sm text-neutral-500">{error}</p>
+            <p className="mt-2 text-sm text-neutral-500">
+              {error ||
+                "Something went wrong while talking to the hotel service."}
+            </p>
             <Link
               href={backHref}
               className="mt-4 inline-flex text-sm font-semibold text-clay"

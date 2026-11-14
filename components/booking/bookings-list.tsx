@@ -11,6 +11,7 @@ import {
   fetchBookings,
   HotelApiError,
   isAbortError,
+  isEmptyNotFoundError,
 } from "@/lib/hotels/api";
 import { formatMoney, formatStayDate } from "@/lib/hotels/format";
 import { readBooking, readBookingList } from "@/lib/hotels/parse";
@@ -92,11 +93,19 @@ export default function BookingsList() {
     setLookupError("");
     try {
       const result = readBooking(await fetchBooking(id));
-      if (!result) throw new Error("No booking was returned.");
+      if (!result) {
+        setLookup(null);
+        setLookupError("No booking matched that id.");
+        return;
+      }
       setLookup(result);
     } catch (reason) {
       setLookup(null);
-      setLookupError(errorMessage(reason));
+      setLookupError(
+        isEmptyNotFoundError(reason)
+          ? "No booking matched that id."
+          : errorMessage(reason),
+      );
     } finally {
       setLookingUp(false);
     }

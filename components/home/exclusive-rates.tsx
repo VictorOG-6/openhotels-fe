@@ -27,9 +27,9 @@ export default function ExclusiveRates() {
 
 function RateList({ onRetry }: { onRetry: () => void }) {
   const [cards, setCards] = useState<ExclusiveRateSlide[]>([]);
-  const [status, setStatus] = useState<"loading" | "ready" | "error">(
-    "loading",
-  );
+  const [status, setStatus] = useState<
+    "loading" | "ready" | "empty" | "error"
+  >("loading");
   const [message, setMessage] = useState("");
 
   useEffect(() => {
@@ -43,8 +43,8 @@ function RateList({ onRetry }: { onRetry: () => void }) {
           setStatus("ready");
           setMessage("");
         } else {
-          setStatus("error");
-          setMessage("Live rates are not available right now.");
+          setStatus("empty");
+          setMessage("");
         }
       },
       (error: unknown) => {
@@ -102,13 +102,27 @@ function RateList({ onRetry }: { onRetry: () => void }) {
         </div>
       ) : null}
 
-      {status === "error" ? (
+      {status === "empty" ? (
         <div className="mt-8 rounded-3xl bg-sand px-6 py-8">
-          <p className="font-display text-3xl">
-            Live rates are quiet right now.
-          </p>
+          <p className="font-display text-3xl">No featured rates right now</p>
           <p className="mt-2 max-w-xl text-sm leading-6 text-neutral-500">
-            {message}
+            The request succeeded, but nothing matched this showcase search.
+            Browse a city to compare live inventory.
+          </p>
+          <Link
+            href="/hotels"
+            className="mt-5 inline-flex rounded-full bg-ink px-4 py-2 text-sm font-semibold text-white"
+          >
+            Browse cities
+          </Link>
+        </div>
+      ) : null}
+
+      {status === "error" ? (
+        <div className="mt-8 rounded-3xl bg-sand px-6 py-8" role="alert">
+          <p className="font-display text-3xl">Could not load live rates</p>
+          <p className="mt-2 max-w-xl text-sm leading-6 text-neutral-500">
+            {message || "Something went wrong while talking to the hotel service."}
           </p>
           <div className="mt-5 flex flex-wrap gap-3">
             <button

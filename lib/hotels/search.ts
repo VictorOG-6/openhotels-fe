@@ -5,6 +5,7 @@ import {
   fetchRates,
   HotelApiError,
   isAbortError,
+  isEmptyNotFoundError,
 } from "@/lib/hotels/api";
 import {
   mergeStayHotels,
@@ -45,11 +46,16 @@ export async function listCityHotels({
     );
   }
 
-  const payload = await fetchHotelList(
-    { cityName: city, countryCode, limit },
-    signal,
-  );
-  return readHotelList(payload);
+  try {
+    const payload = await fetchHotelList(
+      { cityName: city, countryCode, limit },
+      signal,
+    );
+    return readHotelList(payload);
+  } catch (error) {
+    if (isEmptyNotFoundError(error)) return [];
+    throw error;
+  }
 }
 
 export async function searchStays(query: StayQuery): Promise<SearchResult> {
@@ -65,22 +71,53 @@ export async function searchStays(query: StayQuery): Promise<SearchResult> {
 
   if (query.signal?.aborted) throw abortError();
 
-  const listed = listedResult.status === "fulfilled" ? listedResult.value : [];
-  if (ratedResult.status === "fulfilled") {
-    return { hotels: mergeStayHotels(listed, ratedResult.value), priced: true };
+  const listed =
+    listedResult.status === "fulfilled" ? listedResult.value : null;
+  const rated =
+    ratedResult.status === "fulfilled" ? ratedResult.value : null;
+
+  if (listed != null && rated != null) {
+    return { hotels: mergeStayHotels(listed, rated), priced: true };
   }
-  if (isAbortError(ratedResult.reason)) throw ratedResult.reason;
-  if (listed.length) {
+
+  if (listed != null) {
+    if (ratedResult.status === "rejected" && isAbortError(ratedResult.reason)) {
+      throw ratedResult.reason;
+    }
     return {
       hotels: listed,
       priced: false,
-      warning: errorMessage(ratedResult.reason),
+      warning:
+        listed.length > 0 && ratedResult.status === "rejected"
+          ? errorMessage(ratedResult.reason)
+          : undefined,
     };
   }
+
+  if (rated != null) {
+    if (listedResult.status === "rejected" && isAbortError(listedResult.reason)) {
+      throw listedResult.reason;
+    }
+    return {
+      hotels: rated,
+      priced: true,
+      warning:
+        listedResult.status === "rejected"
+          ? errorMessage(listedResult.reason)
+          : undefined,
+    };
+  }
+
   if (listedResult.status === "rejected" && isAbortError(listedResult.reason)) {
     throw listedResult.reason;
   }
-  throw ratedResult.reason;
+  if (ratedResult.status === "rejected" && isAbortError(ratedResult.reason)) {
+    throw ratedResult.reason;
+  }
+
+  throw listedResult.status === "rejected"
+    ? listedResult.reason
+    : ratedResult.reason;
 }
 
 export async function loadHotel(
@@ -171,37 +208,47 @@ export async function loadHomeExclusiveRates(
 }
 
 export async function loadOffers(query: StayQuery): Promise<RoomOffer[]> {
-  const payload = await fetchRates(
-    {
-      hotelIds: query.hotelIds,
-      city: query.city,
-      countryCode: query.countryCode,
-      checkin: query.checkin,
-      checkout: query.checkout,
-      adults: query.adults,
-      childAges: query.childAges,
-      rooms: query.rooms,
-    },
-    query.signal,
-  );
-  return readRoomOffers(payload);
+  try {
+    const payload = await fetchRates(
+      {
+        hotelIds: query.hotelIds,
+        city: query.city,
+        countryCode: query.countryCode,
+        checkin: query.checkin,
+        checkout: query.checkout,
+        adults: query.adults,
+        childAges: query.childAges,
+        rooms: query.rooms,
+      },
+      query.signal,
+    );
+    return readRoomOffers(payload);
+  } catch (error) {
+    if (isEmptyNotFoundError(error)) return [];
+    throw error;
+  }
 }
 
 async function rateHotels(query: StayQuery) {
-  const payload = await fetchRates(
-    {
-      city: query.hotelIds?.length ? undefined : query.city,
-      countryCode: query.countryCode,
-      hotelIds: query.hotelIds,
-      checkin: query.checkin,
-      checkout: query.checkout,
-      adults: query.adults,
-      childAges: query.childAges,
-      rooms: query.rooms,
-    },
-    query.signal,
-  );
-  return readRatedHotels(payload);
+  try {
+    const payload = await fetchRates(
+      {
+        city: query.hotelIds?.length ? undefined : query.city,
+        countryCode: query.countryCode,
+        hotelIds: query.hotelIds,
+        checkin: query.checkin,
+        checkout: query.checkout,
+        adults: query.adults,
+        childAges: query.childAges,
+        rooms: query.rooms,
+      },
+      query.signal,
+    );
+    return readRatedHotels(payload);
+  } catch (error) {
+    if (isEmptyNotFoundError(error)) return [];
+    throw error;
+  }
 }
 
 function abortError() {

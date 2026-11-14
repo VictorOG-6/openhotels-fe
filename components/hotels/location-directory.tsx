@@ -4,7 +4,11 @@ import { useEffect, useState } from "react";
 
 import { Photo, Stars } from "@/components/hotels/photo";
 import StayLink from "@/components/hotels/stay-link";
-import { errorMessage, isAbortError } from "@/lib/hotels/api";
+import {
+  errorMessage,
+  isAbortError,
+  isEmptyNotFoundError,
+} from "@/lib/hotels/api";
 import { LOCATIONS, type CityLocation } from "@/lib/hotels/locations";
 import { listCityHotels } from "@/lib/hotels/search";
 import type { StayHotel } from "@/lib/hotels/types";
@@ -32,6 +36,10 @@ export default function LocationDirectory() {
           setHotels((current) => ({ ...current, [location.slug]: list }));
         } catch (error) {
           if (isAbortError(error) || controller.signal.aborted) return;
+          if (isEmptyNotFoundError(error)) {
+            setHotels((current) => ({ ...current, [location.slug]: [] }));
+            return;
+          }
           setErrors((current) => ({
             ...current,
             [location.slug]: errorMessage(error),
