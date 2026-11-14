@@ -17,7 +17,7 @@ const INITIAL = {
 };
 
 const HERO_BG = {
-  day: "https://images.unsplash.com/photo-1571896349842-33c89424de2d?auto=format&fit=crop&w=2400&q=80",
+  day: "https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=2400&q=80",
   evening:
     "https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=2400&q=80",
 } as const;
@@ -89,12 +89,15 @@ export default function Hero() {
         )}
       />
       <div className="relative z-10 flex min-h-[100svh] flex-col items-center justify-center px-4 pb-16 pt-24 text-center text-white">
-        <p className="text-xs font-semibold uppercase tracking-[0.28em] text-white/80">Open Hotels</p>
+        <p className="text-xs font-semibold uppercase tracking-[0.28em] text-white/80">
+          Open Hotels
+        </p>
         <h1 className="mt-4 max-w-3xl font-display text-5xl leading-tight tracking-tight md:text-7xl">
           Find a hotel with a live rate.
         </h1>
         <p className="mt-4 max-w-xl text-base leading-7 text-white/85 md:text-lg">
-          Choose a city, your dates, and how many guests. Then compare rooms beside the map.
+          Choose a city, your dates, and how many guests. Then compare rooms
+          beside the map.
         </p>
         <div className="mt-8 w-full max-w-5xl">
           <SearchBar initial={INITIAL} tone="overlay" />
