@@ -14,11 +14,7 @@ import type { MapHotel } from "@/components/hotels/hotel-map";
 import StayFilters from "@/components/hotels/stay-filters";
 import SearchBar from "@/components/search/search-bar";
 import { errorMessage, isAbortError } from "@/lib/hotels/api";
-import {
-  mapPinLabel,
-  nightsBetween,
-  scoreOutOfTen,
-} from "@/lib/hotels/format";
+import { mapPinLabel, nightsBetween, scoreOutOfTen } from "@/lib/hotels/format";
 import { isFilteredEmpty, isInventoryEmpty } from "@/lib/hotels/outcome";
 import { hotelSearchNeedsCountryCode } from "@/lib/hotels/query";
 import { buildHotelHref, datesAreValid, readStay } from "@/lib/hotels/query";
@@ -262,15 +258,6 @@ export default function HotelBrowse() {
               Map
             </button>
           </div>
-
-          {message ? (
-            <p
-              className="mb-4 rounded-2xl bg-sand px-4 py-3 text-sm text-ink"
-              role="status"
-            >
-              {message}
-            </p>
-          ) : null}
 
           {pending ? (
             <div className="space-y-4" aria-hidden>
