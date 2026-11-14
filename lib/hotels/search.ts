@@ -115,9 +115,14 @@ export async function searchStays(query: StayQuery): Promise<SearchResult> {
     throw ratedResult.reason;
   }
 
-  throw listedResult.status === "rejected"
-    ? listedResult.reason
-    : ratedResult.reason;
+  if (listedResult.status === "rejected") {
+    throw listedResult.reason;
+  }
+  if (ratedResult.status === "rejected") {
+    throw ratedResult.reason;
+  }
+
+  throw new Error("The hotel search did not complete.");
 }
 
 export async function loadHotel(
