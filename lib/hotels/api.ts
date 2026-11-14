@@ -148,7 +148,7 @@ export function fetchRates(params: RateParams, signal?: AbortSignal) {
 export function fetchPrebook(offerId: string, signal?: AbortSignal) {
   return request("/hotels/prebook", {
     method: "POST",
-    body: JSON.stringify({ offerId, usePaymentSdk: false }),
+    body: JSON.stringify({ offerId }),
     signal,
   });
 }
