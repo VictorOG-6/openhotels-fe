@@ -10,17 +10,12 @@ import {
   formatStayDate,
   nightsBetween,
 } from "@/lib/hotels/format";
-import { LOCATIONS } from "@/lib/hotels/locations";
-import { buildHotelHref, defaultStay } from "@/lib/hotels/query";
-import { searchStays } from "@/lib/hotels/search";
-import type { StayHotel } from "@/lib/hotels/types";
-
-type RateCard = StayHotel & {
-  slug: string;
-  countryCode?: string;
-  checkin: string;
-  checkout: string;
-};
+import { buildBookingHref, buildHotelHref } from "@/lib/hotels/query";
+import {
+  HOME_EXCLUSIVE_RATES,
+  loadHomeExclusiveRates,
+  type ExclusiveRateSlide,
+} from "@/lib/hotels/search";
 
 export default function ExclusiveRates() {
   const [attempt, setAttempt] = useState(0);
@@ -30,74 +25,41 @@ export default function ExclusiveRates() {
 }
 
 function RateList({ onRetry }: { onRetry: () => void }) {
-  const [cards, setCards] = useState<RateCard[]>([]);
+  const [cards, setCards] = useState<ExclusiveRateSlide[]>([]);
   const [status, setStatus] = useState<"loading" | "ready" | "error">(
     "loading",
   );
   const [message, setMessage] = useState("");
-  const [dates, setDates] = useState<{
-    checkin: string;
-    checkout: string;
-  } | null>(null);
 
   useEffect(() => {
     const controller = new AbortController();
-    const stay = defaultStay(14, 3);
-    const featured = LOCATIONS.slice(0, 3);
 
-    Promise.allSettled(
-      featured.map((location) =>
-        searchStays({
-          city: location.city,
-          countryCode: location.countryCode,
-          checkin: stay.checkin,
-          checkout: stay.checkout,
-          adults: 2,
-          childAges: [],
-          rooms: 1,
-          limit: 2,
-          signal: controller.signal,
-        }).then((result) =>
-          result.hotels
-            .filter((hotel) => hotel.price != null)
-            .slice(0, 2)
-            .map((hotel) => ({
-              ...hotel,
-              slug: location.slug,
-              countryCode: location.countryCode,
-              checkin: stay.checkin,
-              checkout: stay.checkout,
-            })),
-        ),
-      ),
-    ).then((results) => {
-      if (controller.signal.aborted) return;
-      const next = results.flatMap((result) =>
-        result.status === "fulfilled" ? result.value : [],
-      );
-      const failure = results.find(
-        (result) =>
-          result.status === "rejected" && !isAbortError(result.reason),
-      );
-      setCards(next);
-      setDates(stay);
-      if (next.length) {
-        setStatus("ready");
-        setMessage("");
-      } else {
+    loadHomeExclusiveRates(controller.signal).then(
+      (offers) => {
+        if (controller.signal.aborted) return;
+        setCards(offers);
+        if (offers.length) {
+          setStatus("ready");
+          setMessage("");
+        } else {
+          setStatus("error");
+          setMessage("Live rates are not available right now.");
+        }
+      },
+      (error: unknown) => {
+        if (isAbortError(error)) return;
+        setCards([]);
         setStatus("error");
-        setMessage(
-          failure && failure.status === "rejected"
-            ? errorMessage(failure.reason)
-            : "Live rates are not available right now.",
-        );
-      }
-    });
+        setMessage(errorMessage(error));
+      },
+    );
 
     return () => controller.abort();
   }, []);
 
-  const nights = dates ? nightsBetween(dates.checkin, dates.checkout) : 0;
+  const { checkin, checkout } = HOME_EXCLUSIVE_RATES;
+  const nights = nightsBetween(checkin, checkout);
+  const hotelName = cards[0]?.hotelName;
 
   return (
     <section
@@ -113,20 +75,27 @@ function RateList({ onRetry }: { onRetry: () => void }) {
             Prices you can open tonight.
           </h2>
         </div>
-        {dates ? (
-          <p className="max-w-xs text-sm leading-6 text-neutral-500">
-            Two adults, {nights} nights, {formatStayDate(dates.checkin)} to{" "}
-            {formatStayDate(dates.checkout)}.
-          </p>
-        ) : null}
+        <p className="max-w-sm text-sm leading-6 text-neutral-500">
+          {nights} nights, {formatStayDate(checkin)} to {formatStayDate(checkout)}
+          {hotelName ? (
+            <>
+              {" "}
+              · {hotelName}
+            </>
+          ) : null}
+          . Mixed occupancies (2 adults + child 11, and 1 adult).
+        </p>
       </div>
 
       {status === "loading" ? (
-        <div className="mt-8 grid gap-4 md:grid-cols-3" aria-hidden>
-          {Array.from({ length: 3 }, (_, index) => (
+        <div
+          className="mt-8 flex gap-4 overflow-hidden"
+          aria-hidden
+        >
+          {Array.from({ length: 4 }, (_, index) => (
             <div
               key={index}
-              className="h-80 animate-pulse rounded-3xl bg-sand"
+              className="h-80 w-[min(85vw,18rem)] shrink-0 animate-pulse rounded-3xl bg-sand"
             />
           ))}
         </div>
@@ -159,47 +128,88 @@ function RateList({ onRetry }: { onRetry: () => void }) {
       ) : null}
 
       {status === "ready" ? (
-        <ul className="mt-8 grid gap-4 md:grid-cols-3">
-          {cards.map((card) => (
-            <li key={`${card.slug}-${card.id}`}>
-              <Link
-                href={buildHotelHref({
-                  slug: card.slug,
-                  city: card.city || card.slug,
-                  country: "",
-                  countryCode: card.countryCode,
-                  checkin: card.checkin,
-                  checkout: card.checkout,
-                  adults: 2,
-                  children: 0,
-                  childAges: [],
-                  rooms: 1,
-                  hotelId: card.id,
-                })}
-                className="group block overflow-hidden rounded-3xl bg-white ring-1 ring-ink/8"
-              >
-                <div className="relative h-52">
-                  <Photo
-                    src={card.image}
-                    alt=""
-                    className="absolute inset-0 transition duration-500 group-hover:scale-105"
-                  />
-                </div>
-                <div className="space-y-2 p-5">
-                  <p className="text-sm text-neutral-500">{card.city}</p>
-                  <h3 className="font-display text-2xl leading-tight">
-                    {card.name}
-                  </h3>
-                  <Stars value={card.stars} />
-                  <p className="text-sm font-semibold">
-                    {formatMoney(card.price || 0, card.currency || "USD")}
-                    <span className="font-normal text-neutral-500"> total</span>
-                  </p>
-                </div>
-              </Link>
-            </li>
-          ))}
-        </ul>
+        <div className="relative mt-8">
+          <div className="-mx-5 md:-mx-8">
+            <ul className="flex snap-x snap-mandatory gap-4 overflow-x-auto overscroll-x-contain px-5 pb-3 pt-1 md:px-8 [scrollbar-width:thin]">
+              {cards.map((card) => (
+                <li
+                  key={card.offerId}
+                  className="w-[min(85vw,18rem)] shrink-0 snap-start"
+                >
+                  <article className="flex h-full flex-col overflow-hidden rounded-3xl bg-white ring-1 ring-ink/8">
+                    <div className="relative h-40">
+                      <Photo
+                        src={card.hotelImage}
+                        alt=""
+                        className="absolute inset-0"
+                      />
+                    </div>
+                    <div className="flex flex-1 flex-col space-y-2 p-5">
+                      <p className="text-sm text-neutral-500">
+                        {card.city || card.hotelName}
+                      </p>
+                      <h3 className="font-display text-xl leading-tight">
+                        {card.name}
+                      </h3>
+                      {card.stars != null ? <Stars value={card.stars} /> : null}
+                      {card.boardName ? (
+                        <p className="text-sm text-neutral-500">{card.boardName}</p>
+                      ) : null}
+                      <p className="text-sm font-semibold">
+                        {formatMoney(card.price || 0, card.currency || "USD")}
+                        <span className="font-normal text-neutral-500"> total</span>
+                      </p>
+                      <div className="mt-auto flex flex-col gap-2 pt-2">
+                        <Link
+                          href={buildBookingHref({
+                            slug: card.slug,
+                            city: card.city || card.hotelName,
+                            country: "",
+                            countryCode: card.countryCode,
+                            checkin: card.checkin,
+                            checkout: card.checkout,
+                            adults: 2,
+                            children: 1,
+                            childAges: [11],
+                            rooms: 1,
+                            offerId: card.offerId,
+                            hotelId: card.hotelId,
+                            hotelName: card.hotelName,
+                            roomName: card.name,
+                          })}
+                          className="rounded-full bg-clay px-4 py-2 text-center text-sm font-semibold text-white hover:bg-clay-dark"
+                        >
+                          Prebook
+                        </Link>
+                        <Link
+                          href={buildHotelHref({
+                            slug: card.slug,
+                            city: card.city || card.hotelName,
+                            country: "",
+                            countryCode: card.countryCode,
+                            checkin: card.checkin,
+                            checkout: card.checkout,
+                            adults: 2,
+                            children: 1,
+                            childAges: [11],
+                            rooms: 1,
+                            hotelId: card.hotelId,
+                          })}
+                          className="text-center text-xs font-medium text-neutral-500 hover:text-ink"
+                        >
+                          Hotel details
+                        </Link>
+                      </div>
+                    </div>
+                  </article>
+                </li>
+              ))}
+            </ul>
+          </div>
+          <p className="mt-3 text-xs text-neutral-400 md:pl-0">
+            Scroll sideways to compare {cards.length} live room rates.
+          </p>
+        </div>
       ) : null}
     </section>
   );

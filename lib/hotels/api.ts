@@ -31,6 +31,12 @@ type ListParams = {
   limit?: number;
 };
 
+export type RateOccupancy = {
+  rooms: number;
+  adults: number;
+  childAges?: number[];
+};
+
 type RateParams = {
   city?: string;
   countryCode?: string;
@@ -40,8 +46,12 @@ type RateParams = {
   adults: number;
   childAges: number[];
   rooms: number;
+  occupancies?: RateOccupancy[];
   limit?: number;
   maxRatesPerHotel?: number;
+  timeout?: number;
+  roomMapping?: boolean;
+  includeHotelData?: boolean;
 };
 
 export type BookPayload = {
@@ -76,22 +86,39 @@ export function fetchHotel(hotelId: string, signal?: AbortSignal) {
   return request(`/hotels/${encodeURIComponent(hotelId)}?language=en`, { signal });
 }
 
-export function fetchRates(params: RateParams, signal?: AbortSignal) {
-  const occupancy: Record<string, unknown> = {
-    adults: params.adults,
-    rooms: params.rooms,
+function buildOccupancy(occupancy: RateOccupancy) {
+  const row: Record<string, unknown> = {
+    adults: occupancy.adults,
+    rooms: occupancy.rooms,
   };
-  if (params.childAges.length) occupancy.children = params.childAges;
+  const children = occupancy.childAges ?? [];
+  if (children.length) row.children = children;
+  return row;
+}
+
+export function fetchRates(params: RateParams, signal?: AbortSignal) {
+  const occupancies = params.occupancies?.length
+    ? params.occupancies.map(buildOccupancy)
+    : [
+        (() => {
+          const occupancy: Record<string, unknown> = {
+            adults: params.adults,
+            rooms: params.rooms,
+          };
+          if (params.childAges.length) occupancy.children = params.childAges;
+          return occupancy;
+        })(),
+      ];
 
   const body: Record<string, unknown> = {
-    occupancies: [occupancy],
+    occupancies,
     currency: CURRENCY,
     guestNationality: NATIONALITY,
     checkin: params.checkin,
     checkout: params.checkout,
-    timeout: 20,
-    roomMapping: true,
-    includeHotelData: true,
+    timeout: params.timeout ?? 20,
+    roomMapping: params.roomMapping ?? true,
+    includeHotelData: params.includeHotelData ?? true,
     maxRatesPerHotel: params.maxRatesPerHotel ?? 1,
     limit: params.limit ?? 24,
     sort: [{ field: "price", direction: "ascending" }],

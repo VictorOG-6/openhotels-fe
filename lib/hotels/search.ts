@@ -12,6 +12,7 @@ import {
   readRatedHotels,
   readRoomOffers,
 } from "@/lib/hotels/parse";
+import { slugify } from "@/lib/hotels/query";
 import type { HotelDetail, RoomOffer, SearchResult, StayHotel } from "@/lib/hotels/types";
 
 type CityQuery = {
@@ -83,6 +84,79 @@ export async function loadHotel(
   const hotel = readHotelDetail(payload);
   if (!hotel) throw new Error("The hotel record did not include a name.");
   return hotel;
+}
+
+export const HOME_EXCLUSIVE_RATES = {
+  hotelIds: ["lp1897"],
+  checkin: "2027-01-15",
+  checkout: "2027-01-17",
+  occupancies: [
+    { rooms: 1, adults: 2, childAges: [11] },
+    { rooms: 1, adults: 1 },
+  ],
+  timeout: 6,
+  maxRatesPerHotel: 25,
+  limit: 25,
+} as const;
+
+export type ExclusiveRateSlide = RoomOffer & {
+  hotelId: string;
+  hotelName: string;
+  hotelImage?: string;
+  city?: string;
+  stars?: number;
+  checkin: string;
+  checkout: string;
+  slug: string;
+  countryCode?: string;
+};
+
+export async function loadHomeExclusiveRates(
+  signal?: AbortSignal,
+): Promise<ExclusiveRateSlide[]> {
+  const query = HOME_EXCLUSIVE_RATES;
+  const payload = await fetchRates(
+    {
+      hotelIds: [...query.hotelIds],
+      checkin: query.checkin,
+      checkout: query.checkout,
+      adults: 2,
+      childAges: [],
+      rooms: 1,
+      occupancies: query.occupancies.map((row) => {
+        const childAges =
+          "childAges" in row && row.childAges ? [...row.childAges] : undefined;
+        return { rooms: row.rooms, adults: row.adults, childAges };
+      }),
+      timeout: query.timeout,
+      maxRatesPerHotel: query.maxRatesPerHotel,
+      limit: query.limit,
+      roomMapping: true,
+      includeHotelData: true,
+    },
+    signal,
+  );
+
+  const hotels = readHotelList(payload);
+  const rated = readRatedHotels(payload);
+  const hotel = hotels[0] ?? rated[0];
+  const hotelId = hotel?.id ?? query.hotelIds[0];
+  const hotelName = hotel?.name ?? hotelId;
+  const slug = hotel?.city ? slugify(hotel.city) : "hotels";
+  const offers = readRoomOffers(payload).filter((offer) => offer.price != null);
+
+  return offers.map((offer) => ({
+    ...offer,
+    hotelId,
+    hotelName,
+    hotelImage: hotel?.image,
+    city: hotel?.city,
+    stars: hotel?.stars,
+    checkin: query.checkin,
+    checkout: query.checkout,
+    slug,
+    countryCode: undefined,
+  }));
 }
 
 export async function loadOffers(query: StayQuery): Promise<RoomOffer[]> {
