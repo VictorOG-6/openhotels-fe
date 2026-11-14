@@ -5,7 +5,11 @@ import { useRouter } from "next/navigation";
 
 import { guestLabel } from "@/lib/hotels/format";
 import { LOCATIONS } from "@/lib/hotels/locations";
-import { buildBrowseHref, resolveDestination } from "@/lib/hotels/query";
+import {
+  buildBrowseHref,
+  hotelSearchNeedsCountryCode,
+  resolveDestination,
+} from "@/lib/hotels/query";
 import type { StaySelection } from "@/lib/hotels/types";
 import { cn } from "@/lib/utils";
 
@@ -115,7 +119,11 @@ export default function SearchBar({
       : resolveDestination(location);
 
     if (!resolved?.slug || !resolved.city) {
-      setError("Enter a city to search.");
+      setError("Enter a city and country to search.");
+      return;
+    }
+    if (hotelSearchNeedsCountryCode(resolved.countryCode)) {
+      setError("Add a country with the city, e.g. Abuja, Nigeria or Paris, FR.");
       return;
     }
     if (!checkin || !checkout || checkout <= checkin) {
@@ -157,7 +165,7 @@ export default function SearchBar({
                 setSuggestOpen(true);
                 setGuestOpen(false);
               }}
-              placeholder="City or destination"
+              placeholder="City, country"
               aria-label="Destination"
               role="combobox"
               aria-expanded={suggestOpen}
@@ -176,7 +184,7 @@ export default function SearchBar({
                     <button
                       type="button"
                       onClick={() => {
-                        setLocation(item.city);
+                        setLocation(`${item.city}, ${item.country}`);
                         setSuggestOpen(false);
                       }}
                       className="flex w-full flex-col rounded-2xl px-3 py-2 text-left hover:bg-sand"
@@ -189,14 +197,12 @@ export default function SearchBar({
                   </li>
                 ))}
                 {query && !exactMatch ? (
-                  <li>
-                    <button
-                      type="button"
-                      onClick={() => setSuggestOpen(false)}
-                      className="w-full rounded-2xl px-3 py-2 text-left text-sm hover:bg-sand"
-                    >
-                      Search for “{location.trim()}”
-                    </button>
+                  <li className="px-3 py-2 text-xs text-neutral-500">
+                    Add a country after the city, e.g.{" "}
+                    {location.trim().includes(",")
+                      ? "check the spelling"
+                      : `${location.trim()}, Nigeria`}
+                    .
                   </li>
                 ) : null}
               </ul>

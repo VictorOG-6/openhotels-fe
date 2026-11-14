@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 
+import PrebookRateButton from "@/components/hotels/prebook-rate-button";
 import { Photo, Stars } from "@/components/hotels/photo";
 import SearchBar from "@/components/search/search-bar";
 import { errorMessage, isAbortError } from "@/lib/hotels/api";
@@ -12,6 +13,7 @@ import {
   formatMoney,
   formatStayDate,
   guestLabel,
+  mapPinLabel,
   nightsBetween,
 } from "@/lib/hotels/format";
 import {
@@ -126,10 +128,11 @@ function HotelDetailBody({ hotelId, slug }: { hotelId: string; slug: string }) {
             name: hotel.name,
             latitude: hotel.latitude,
             longitude: hotel.longitude,
-            priceLabel:
-              offers[0]?.price != null
-                ? formatMoney(offers[0].price, offers[0].currency || "USD")
-                : "Stay",
+            priceLabel: mapPinLabel(
+              hotel.name,
+              offers[0]?.price,
+              offers[0]?.currency || "USD",
+            ),
           },
         ]
       : [];
@@ -323,7 +326,8 @@ function HotelDetailBody({ hotelId, slug }: { hotelId: string; slug: string }) {
                                   {nights === 1 ? "" : "s"}
                                 </p>
                               ) : null}
-                              <Link
+                              <PrebookRateButton
+                                className="mt-3"
                                 href={buildBookingHref({
                                   ...stay,
                                   offerId: offer.offerId,
@@ -331,10 +335,7 @@ function HotelDetailBody({ hotelId, slug }: { hotelId: string; slug: string }) {
                                   hotelName: hotel.name,
                                   roomName: offer.name,
                                 })}
-                                className="mt-3 inline-flex rounded-full bg-clay px-5 py-2.5 text-sm font-semibold text-white hover:bg-clay-dark"
-                              >
-                                Prebook this rate
-                              </Link>
+                              />
                             </div>
                           </div>
                         </li>

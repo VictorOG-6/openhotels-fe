@@ -71,6 +71,15 @@ export type BookPayload = {
 };
 
 export function fetchHotelList(params: ListParams, signal?: AbortSignal) {
+  const cityName = params.cityName?.trim();
+  const countryCode = params.countryCode?.trim();
+  if (cityName && !countryCode) {
+    throw new HotelApiError(
+      "Include a country code with the city name to search hotels.",
+      400,
+    );
+  }
+
   return request(`/hotels${toQuery({
     cityName: params.cityName,
     countryCode: params.countryCode,

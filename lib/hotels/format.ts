@@ -31,6 +31,21 @@ export function plainText(value: string) {
     .trim();
 }
 
+export function trimMapLabel(value: string, maxLength = 24) {
+  const trimmed = value.trim();
+  if (trimmed.length <= maxLength) return trimmed;
+  return `${trimmed.slice(0, maxLength - 3).trimEnd()}...`;
+}
+
+export function mapPinLabel(
+  name: string,
+  price?: number | null,
+  currency = "USD",
+) {
+  if (price != null) return formatMoney(price, currency);
+  return trimMapLabel(name);
+}
+
 export function formatMoney(amount: number, currency = "USD") {
   try {
     return new Intl.NumberFormat("en-US", {

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
+import PrebookRateButton from "@/components/hotels/prebook-rate-button";
 import { Photo, Stars } from "@/components/hotels/photo";
 import { errorMessage, isAbortError } from "@/lib/hotels/api";
 import {
@@ -160,7 +161,9 @@ function RateList({ onRetry }: { onRetry: () => void }) {
                         <span className="font-normal text-neutral-500"> total</span>
                       </p>
                       <div className="mt-auto flex flex-col gap-2 pt-2">
-                        <Link
+                        <PrebookRateButton
+                          label="Prebook"
+                          className="w-full justify-center px-4 py-2 text-center"
                           href={buildBookingHref({
                             slug: card.slug,
                             city: card.city || card.hotelName,
@@ -177,10 +180,7 @@ function RateList({ onRetry }: { onRetry: () => void }) {
                             hotelName: card.hotelName,
                             roomName: card.name,
                           })}
-                          className="rounded-full bg-clay px-4 py-2 text-center text-sm font-semibold text-white hover:bg-clay-dark"
-                        >
-                          Prebook
-                        </Link>
+                        />
                         <Link
                           href={buildHotelHref({
                             slug: card.slug,

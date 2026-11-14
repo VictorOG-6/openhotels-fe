@@ -64,9 +64,9 @@ function Checkout({
   const quotedRoom = searchParams.get("room") || "Selected room";
 
   const [prebook, setPrebook] = useState<PrebookResult | null>(null);
-  const [phase, setPhase] = useState<"loading" | "ready" | "error" | "booked">(
-    "loading",
-  );
+  const [phase, setPhase] = useState<
+    "loading" | "ready" | "error" | "booked" | "auth"
+  >("loading");
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [booking, setBooking] = useState<BookingResult | null>(null);
@@ -111,6 +111,12 @@ function Checkout({
     }
 
     if (!offerId) return;
+
+    if (!readSignedIn()) {
+      setPhase("auth");
+      return;
+    }
+
     const controller = new AbortController();
     fetchPrebook(offerId, controller.signal)
       .then((payload) => {
@@ -146,6 +152,10 @@ function Checkout({
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!prebook) return;
+    if (!signedIn) {
+      setError("Log in before confirming this booking.");
+      return;
+    }
     const form = new FormData(event.currentTarget);
     const holder = {
       firstName: text(form, "firstName"),
@@ -213,6 +223,7 @@ function Checkout({
     prebook?.hotelName || (existingPrebookId ? "Pre-booking" : quotedHotel);
   const roomLabel =
     prebook?.roomName || (existingPrebookId ? "Held rate" : quotedRoom);
+  const returnUrl = bookingReturnUrl(searchParams);
 
   if (phase === "booked" && booking) {
     return (
@@ -284,6 +295,37 @@ function Checkout({
               : `Reserving ${quotedRoom} so the rate can be confirmed.`}
           </p>
         ) : null}
+        {phase === "auth" ? (
+          <div className="mt-8 rounded-3xl bg-white p-6 ring-1 ring-ink/8">
+            <p className="font-display text-3xl">Sign in to prebook this rate</p>
+            <p className="mt-2 text-sm leading-6 text-neutral-500">
+              We hold the room price only after you are signed in. Log in or
+              create an account, then you will return here to confirm{" "}
+              {quotedRoom}.
+            </p>
+            <div className="mt-5 flex flex-wrap gap-3">
+              <Link
+                href={`/sign-in?redirectUri=${encodeURIComponent(returnUrl)}`}
+                className="rounded-full bg-clay px-4 py-2 text-sm font-semibold text-white hover:bg-clay-dark"
+              >
+                Log in
+              </Link>
+              <Link
+                href={`/sign-up?redirectUri=${encodeURIComponent(returnUrl)}`}
+                className="rounded-full border border-line px-4 py-2 text-sm font-semibold hover:bg-sand"
+              >
+                Sign up
+              </Link>
+              <Link
+                href={backHref}
+                className="rounded-full px-4 py-2 text-sm font-medium text-neutral-500 hover:text-ink"
+              >
+                Back to hotel
+              </Link>
+            </div>
+          </div>
+        ) : null}
+
         {phase === "error" ? (
           <div
             className="mt-8 rounded-3xl bg-white p-6 ring-1 ring-ink/8"
@@ -413,10 +455,14 @@ function Checkout({
 
             <button
               type="submit"
-              disabled={submitting}
-              className="rounded-full bg-clay px-6 py-3 text-sm font-semibold text-white hover:bg-clay-dark disabled:opacity-60"
+              disabled={submitting || !signedIn}
+              className="rounded-full bg-clay px-6 py-3 text-sm font-semibold text-white hover:bg-clay-dark disabled:cursor-not-allowed disabled:opacity-60"
             >
-              {submitting ? "Booking" : "Book this stay"}
+              {submitting
+                ? "Booking"
+                : signedIn
+                  ? "Book this stay"
+                  : "Sign in to book"}
             </button>
           </form>
         ) : null}
@@ -526,6 +572,11 @@ function Row({ label, value }: { label: string; value: string }) {
 
 function readSignedIn() {
   return readAssistantContext().isSignedIn;
+}
+
+function bookingReturnUrl(params: URLSearchParams) {
+  const query = params.toString();
+  return query ? `/booking?${query}` : "/booking";
 }
 
 function text(form: FormData, key: string) {

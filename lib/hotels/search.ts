@@ -3,6 +3,7 @@ import {
   fetchHotel,
   fetchHotelList,
   fetchRates,
+  HotelApiError,
   isAbortError,
 } from "@/lib/hotels/api";
 import {
@@ -37,6 +38,13 @@ export async function listCityHotels({
   limit = 4,
   signal,
 }: CityQuery): Promise<StayHotel[]> {
+  if (!countryCode?.trim()) {
+    throw new HotelApiError(
+      "Include a country code with the city name to search hotels.",
+      400,
+    );
+  }
+
   const payload = await fetchHotelList(
     { cityName: city, countryCode, limit },
     signal,

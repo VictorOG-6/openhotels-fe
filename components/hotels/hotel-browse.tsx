@@ -14,7 +14,12 @@ import type { MapHotel } from "@/components/hotels/hotel-map";
 import StayFilters from "@/components/hotels/stay-filters";
 import SearchBar from "@/components/search/search-bar";
 import { errorMessage, isAbortError } from "@/lib/hotels/api";
-import { formatMoney, nightsBetween, scoreOutOfTen } from "@/lib/hotels/format";
+import {
+  mapPinLabel,
+  nightsBetween,
+  scoreOutOfTen,
+} from "@/lib/hotels/format";
+import { hotelSearchNeedsCountryCode } from "@/lib/hotels/query";
 import { buildHotelHref, datesAreValid, readStay } from "@/lib/hotels/query";
 import { listCityHotels, searchStays } from "@/lib/hotels/search";
 import type { StayHotel } from "@/lib/hotels/types";
@@ -95,6 +100,17 @@ export default function HotelBrowse() {
   }, []);
 
   useEffect(() => {
+    if (hotelSearchNeedsCountryCode(countryCode)) {
+      setHotels([]);
+      setPriced(false);
+      setMessage(
+        "Add a country with the city to search hotels, e.g. Abuja, Nigeria.",
+      );
+      setStatus("error");
+      setLoadedKey(searchKey);
+      return;
+    }
+
     const controller = new AbortController();
     const childAges = ages ? ages.split(",").map(Number) : [];
     const hasDates = datesAreValid(checkin, checkout);
@@ -175,10 +191,11 @@ export default function HotelBrowse() {
         name: hotel.name,
         latitude: hotel.latitude,
         longitude: hotel.longitude,
-        priceLabel:
-          hotel.price != null
-            ? formatMoney(hotel.price, hotel.currency || "USD")
-            : "Stay",
+        priceLabel: mapPinLabel(
+          hotel.name,
+          hotel.price,
+          hotel.currency || "USD",
+        ),
       },
     ];
   });

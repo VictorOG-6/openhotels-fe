@@ -35,8 +35,98 @@ export function defaultStay(leadDays = 21, nights = 3) {
   };
 }
 
+const COUNTRY_ALIASES: Record<string, string> = {
+  uk: "GB",
+  uae: "AE",
+  usa: "US",
+};
+
+const countryIndex = (() => {
+  const byToken = new Map<string, { code: string; name: string }>();
+  for (const location of LOCATIONS) {
+    registerCountry(byToken, location.countryCode, location.country);
+  }
+  registerCountry(byToken, "NG", "Nigeria");
+  return byToken;
+})();
+
+function registerCountry(
+  index: Map<string, { code: string; name: string }>,
+  code: string,
+  name: string,
+) {
+  const entry = { code: code.toUpperCase(), name };
+  index.set(code.toLowerCase(), entry);
+  index.set(name.toLowerCase(), entry);
+}
+
+function resolveCountryToken(token: string) {
+  const raw = token.trim();
+  if (!raw) return null;
+
+  if (/^[a-z]{2}$/i.test(raw)) {
+    const code = raw.toUpperCase();
+    const entry = countryIndex.get(code.toLowerCase());
+    return {
+      countryCode: code,
+      country: entry?.name || "",
+    };
+  }
+
+  const alias = COUNTRY_ALIASES[raw.toLowerCase()];
+  if (alias) {
+    const entry = countryIndex.get(alias.toLowerCase());
+    return {
+      countryCode: alias,
+      country: entry?.name || "",
+    };
+  }
+
+  const entry = countryIndex.get(raw.toLowerCase());
+  if (entry) {
+    return { countryCode: entry.code, country: entry.name };
+  }
+
+  return null;
+}
+
+export function hotelSearchNeedsCountryCode(countryCode?: string) {
+  return !countryCode?.trim();
+}
+
 export function resolveDestination(input: string): StaySelection | null {
   const trimmed = input.trim();
+  if (!trimmed) return null;
+
+  const comma = trimmed.indexOf(",");
+  if (comma >= 0) {
+    const city = trimmed.slice(0, comma).trim();
+    const countryPart = trimmed.slice(comma + 1).trim();
+    const resolved = resolveCountryToken(countryPart);
+    const slug = slugify(city);
+    if (!city || !slug || !resolved) return null;
+
+    const known = LOCATIONS.find((location) => {
+      const name = location.city.toLowerCase();
+      return location.slug === slug || name === city.toLowerCase();
+    });
+
+    return {
+      slug: known?.slug || slug,
+      city: known?.city || city,
+      country: resolved.country || known?.country || "",
+      countryCode: resolved.countryCode,
+      latitude: known?.latitude,
+      longitude: known?.longitude,
+      checkin: "",
+      checkout: "",
+      adults: 2,
+      children: 0,
+      childAges: [],
+      rooms: 1,
+    };
+  }
+
   const slug = slugify(trimmed);
   if (!slug) return null;
 
