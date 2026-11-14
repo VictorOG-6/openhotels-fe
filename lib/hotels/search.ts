@@ -29,7 +29,6 @@ type StayQuery = CityQuery & {
   childAges: number[];
   rooms: number;
   hotelIds?: string[];
-  maxRatesPerHotel?: number;
 };
 
 export async function listCityHotels({
@@ -95,8 +94,6 @@ export const HOME_EXCLUSIVE_RATES = {
     { rooms: 1, adults: 1 },
   ],
   timeout: 6,
-  maxRatesPerHotel: 25,
-  limit: 25,
 } as const;
 
 export type ExclusiveRateSlide = RoomOffer & {
@@ -115,39 +112,45 @@ export async function loadHomeExclusiveRates(
   signal?: AbortSignal,
 ): Promise<ExclusiveRateSlide[]> {
   const query = HOME_EXCLUSIVE_RATES;
-  const payload = await fetchRates(
-    {
-      hotelIds: [...query.hotelIds],
-      checkin: query.checkin,
-      checkout: query.checkout,
-      adults: 2,
-      childAges: [],
-      rooms: 1,
-      occupancies: query.occupancies.map((row) => {
-        const childAges =
-          "childAges" in row && row.childAges ? [...row.childAges] : undefined;
-        return { rooms: row.rooms, adults: row.adults, childAges };
-      }),
-      timeout: query.timeout,
-      maxRatesPerHotel: query.maxRatesPerHotel,
-      limit: query.limit,
-      roomMapping: true,
-      includeHotelData: true,
-    },
-    signal,
-  );
+  const hotelId = query.hotelIds[0];
+  const [payload, hotelResult] = await Promise.allSettled([
+    fetchRates(
+      {
+        hotelIds: [...query.hotelIds],
+        checkin: query.checkin,
+        checkout: query.checkout,
+        adults: 2,
+        childAges: [],
+        rooms: 1,
+        occupancies: query.occupancies.map((row) => {
+          const childAges =
+            "childAges" in row && row.childAges ? [...row.childAges] : undefined;
+          return { rooms: row.rooms, adults: row.adults, childAges };
+        }),
+        timeout: query.timeout,
+        roomMapping: true,
+      },
+      signal,
+    ),
+    loadHotel(hotelId, signal),
+  ]);
 
-  const hotels = readHotelList(payload);
-  const rated = readRatedHotels(payload);
-  const hotel = hotels[0] ?? rated[0];
-  const hotelId = hotel?.id ?? query.hotelIds[0];
-  const hotelName = hotel?.name ?? hotelId;
+  if (payload.status !== "fulfilled") throw payload.reason;
+  const ratesPayload = payload.value;
+  const hotel =
+    hotelResult.status === "fulfilled"
+      ? hotelResult.value
+      : readRatedHotels(ratesPayload)[0];
+  const resolvedHotelId = hotel?.id ?? hotelId;
+  const hotelName = hotel?.name ?? resolvedHotelId;
   const slug = hotel?.city ? slugify(hotel.city) : "hotels";
-  const offers = readRoomOffers(payload).filter((offer) => offer.price != null);
+  const offers = readRoomOffers(ratesPayload).filter(
+    (offer) => offer.price != null,
+  );
 
   return offers.map((offer) => ({
     ...offer,
-    hotelId,
+    hotelId: resolvedHotelId,
     hotelName,
     hotelImage: hotel?.image,
     city: hotel?.city,
@@ -170,8 +173,6 @@ export async function loadOffers(query: StayQuery): Promise<RoomOffer[]> {
       adults: query.adults,
       childAges: query.childAges,
       rooms: query.rooms,
-      limit: query.limit ?? 1,
-      maxRatesPerHotel: query.maxRatesPerHotel ?? 20,
     },
     query.signal,
   );
@@ -189,8 +190,6 @@ async function rateHotels(query: StayQuery) {
       adults: query.adults,
       childAges: query.childAges,
       rooms: query.rooms,
-      limit: query.limit ?? 24,
-      maxRatesPerHotel: query.maxRatesPerHotel ?? 1,
     },
     query.signal,
   );

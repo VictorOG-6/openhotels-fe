@@ -47,11 +47,8 @@ type RateParams = {
   childAges: number[];
   rooms: number;
   occupancies?: RateOccupancy[];
-  limit?: number;
-  maxRatesPerHotel?: number;
   timeout?: number;
   roomMapping?: boolean;
-  includeHotelData?: boolean;
 };
 
 export type BookPayload = {
@@ -118,10 +115,6 @@ export function fetchRates(params: RateParams, signal?: AbortSignal) {
     checkout: params.checkout,
     timeout: params.timeout ?? 20,
     roomMapping: params.roomMapping ?? true,
-    includeHotelData: params.includeHotelData ?? true,
-    maxRatesPerHotel: params.maxRatesPerHotel ?? 1,
-    limit: params.limit ?? 24,
-    sort: [{ field: "price", direction: "ascending" }],
   };
 
   if (params.hotelIds?.length) {

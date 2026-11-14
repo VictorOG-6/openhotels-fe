@@ -91,7 +91,6 @@ function HotelDetailBody({ hotelId, slug }: { hotelId: string; slug: string }) {
       adults: stay.adults,
       childAges: stay.childAges,
       rooms: stay.rooms,
-      maxRatesPerHotel: 20,
       signal: controller.signal,
     }).then(
       (result) => {
